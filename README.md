@@ -1,4 +1,4 @@
-# Training Labs
+# WEB API Exploitation - Training Labs
 
 ## Copyright © Sec4US®
 
