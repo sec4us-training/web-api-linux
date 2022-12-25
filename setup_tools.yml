@@ -86,45 +86,19 @@
       with_fileglob:
         - ./*.yml
 
-    - name: Tools | Copy Training Files
-      copy:
-        src: web_api.zip
-        dest: /home/{{ local_username }}/Desktop/DeployPackage
-        owner: "{{ local_username }}"
-        group: "{{ user_details.group }}"
-        force: yes
+    - name: Tools | Git clone
+      shell: 'cd /tmp; rm -rf /tmp/web_api/; git clone https://github.com/sec4us-training/web-api-linux.git web_api'
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
 
-    - name: Tools | Create directory /tmp/web_api/
-      file:
-        path: /tmp/web_api/
-        state: directory
-        owner: "{{ local_username }}"
-        group: "{{ user_details.group }}"
-        mode: 0775
-
-    - name: Tools | Extract Training files
-      unarchive:
-        src: /home/{{ local_username }}/Desktop/DeployPackage/web_api.zip
-        dest: /tmp/web_api/
-        remote_src: yes
-
-    - name: Tools | Copy a user deploy.sh
-      copy:
-        src: deploy.sh
-        dest: /home/{{ local_username }}/Desktop/DeployPackage/
-        owner: "{{ local_username }}"
-        group: "{{ user_details.group }}"
-        mode: 0644
-        force: yes
-
-    - name: Tools | Copy a user README
-      copy:
-        src: README.md
-        dest: /home/{{ local_username }}/Desktop/DeployPackage/
-        owner: "{{ local_username }}"
-        group: "{{ user_details.group }}"
-        mode: 0644
-        force: yes
+    - name: Tools | Copy Git clone
+      shell: 'rsync -av /tmp/web_api/* /home/{{ local_username }}/Desktop/DeployPackage'
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
 
     - name: Tools | Install turbosearch
       ansible.builtin.pip:
