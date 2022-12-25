@@ -1,10 +1,18 @@
 # Training Labs
 
-Este é um procedimento que realiza a configuração completa para a realização dos laboratórios do treinamento de Web API Exploitation da Sec4US.
+## Copyright © Sec4US®
 
-**Nota:** O "alvo" servidor de deploy, deve ser um ubuntu linux e todos os seus dados poderão ser destruidos, sendo assim NÃO execute este procedimento em um servidor com dados que não podem ser perdidos.
+Todos os direitos reservados. Nenhuma parte dos materiais disponibilizadas, incluindo este repositório, scripts, servidor, suas aplicações e seu código fonte, podem ser redistribuídas, sublicenciadas, transmitidas, alteradas, comercializadas ou utilizadas para trabalhos sem a autorização por escrito da Sec4US
+
+## Sobre
+
+Este é um procedimento que realiza a configuração completa de um servidor Linux para as práticas de testes de invasão (Pentest) realizados durante o treinamento de Web API Exploitation da Sec4US.
+
+Conheça mais sobre nosso treinamento em: https://sec4us.com.br/treinamentos/active-directory-exploitation/
 
 ## Ambiente
+
+**Nota:** O "alvo" servidor de deploy, deve ser um ubuntu linux e todos os seus dados poderão ser destruidos, sendo assim NÃO execute este procedimento em um servidor com dados que não podem ser perdidos.
 
 Este ambiente é composto de duas máquinas:
 
@@ -66,9 +74,9 @@ Dentro da sua máquina cliente, copie os 2 arquivos (id_rsa e id_rsa.pub) gerado
 ```
 $ls
 
-README.md       id_rsa.pub          setup_apiauth.yml   setup_burp.yml      setup_python38.yml  user_details.yml    web_api.zip
+README.md       id_rsa.pub          setup_apiauth.yml   setup_burp.yml      setup_python38.yml  user_details.yml
 deploy.sh       setup_api1.yml      setup_bank.yml      setup_nginx.yml     setup_rdp.yml       vars.yml
-id_rsa          setup_api2.yml      setup_base.yml      setup_node.yml      setup_tools.yml     vars_old.yml
+id_rsa          setup_api2.yml      setup_base.yml      setup_node.yml      setup_tools.yml     
 ```
 
 ## Realizando o deploy
