@@ -1,0 +1,338 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    nodejs_version: "16"
+  vars_files:
+    - vars.yml
+
+  tasks:
+
+    - name: Base | Set a hostname
+      ansible.builtin.hostname:
+        name: WebAPIExploitation
+
+    - name: Base | Set hosts
+      shell: |
+        echo "127.0.0.1    api1.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    api2.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    auth.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    sec4usbank.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    facebuquison.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    cathub.webapiexploitation.com.br" >> /etc/hosts
+        echo "127.0.0.1    $(hostname)" >> /etc/hosts
+      args:
+        warn: false
+
+    - name: Base | Make sure we have a 'sec4us' group
+      group:
+        name: sec4us
+        state: present
+
+    - name: Base | Allow 'sec4us' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%sec4us'
+        line: '%sec4us ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+
+    - name: Base | Add sudoers users to sec4us group
+      user:
+        name: "{{ local_username }}"
+        groups: sec4us
+        append: yes
+        state: present
+        createhome: yes
+        shell: /bin/bash
+
+    - name: Base | Set up authorized keys for the user
+      authorized_key:
+        user: "{{ local_username }}"
+        key: "{{item}}"
+      with_file:
+        - ssh_key.pub
+
+    - name: Base | Get local user
+      set_fact:
+        home_path: "{{ lookup('env', 'HOME') }}"
+      delegate_to: localhost
+
+    - name: Base | Check if local id_rsa.pub exists
+      stat:
+        path: "{{home_path}}/.ssh/id_rsa.pub"
+      register: pub_stats
+      delegate_to: localhost
+      become: no
+
+    - name: Base | Set up local id_rsa.pub as authorized keys for the user
+      authorized_key:
+        user: "{{ local_username }}"
+        key: "{{ lookup('file', pub_stats.stat.path)}}"
+      when: pub_stats.stat.exists
+      ignore_errors: true
+
+    - include_tasks: 'user_details.yml'
+
+    - include_tasks: 'setup_python38.yml'
+    - include_tasks: 'setup_nginx.yml'
+    - include_tasks: 'setup_node.yml'
+
+    - name: Base | Update apt package lists
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Base | Install deploy-specific dependencies
+      apt:
+        pkg:
+          - libwacom-common
+          - python3-apt
+
+
+    - name: Base | Update all packages to their latest version
+      ignore_errors: yes
+      apt:
+        name: "*"
+        state: latest
+
+    - name: Base | Install a list of packages
+      apt:
+        pkg:
+        - nginx 
+        - nginx-extras 
+        - build-essential
+        - curl
+        - openssl
+        - libmariadb-dev-compat
+        - libmariadb-dev
+        - libssl-dev
+        - ca-certificates
+        - libssl-dev 
+        - libffi-dev
+        - mariadb-client
+        - mariadb-server
+        - ntp
+        - net-tools
+        - ntpdate 
+        - sqlite3 
+        - certbot 
+        - fail2ban 
+        - p7zip-full
+        - easy-rsa
+        - perl
+        - libsasl2-2
+        - libsasl2-modules
+        - unzip
+        - xz-utils
+        - xorg
+        - squid
+        - apache2-utils
+        - software-properties-common
+        - openjdk-8-jre
+        - openjdk-8-jdk
+        - unzip
+        - zip
+        - firefox
+        - terminator
+        - hashcat
+        - jq
+        - sqlmap
+
+    - name: Base | Change default user password
+      shell: echo {{ local_username }}:{{ default_password }} | chpasswd
+      ignore_errors: yes
+      become: yes
+
+    - name: Base | Configuring MOTD
+      copy:
+        dest: "/etc/motd"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          .
+           _____             ___ _   _ _____
+          /  ___|           /   | | | /  ___|
+          \ `--.  ___  ___ / /| | | | \ `--.
+           `--. \/ _ \/ __/ /_| | | | |`--. \
+          /\__/ /  __/ (__\___  | |_| /\__/ /
+          \____/ \___|\___|   |_/\___/\____/
+
+          Treinamento: Web API Exploitation
+          Servidor WEB APIs v 2.0
+
+          Copyright © Sec4US® - Todos os direitos reservados. Nenhuma parte dos materiais disponibilizadas, incluindo este servidor, suas aplicações e seu código fonte, podem ser copiadas, publicadas, compartilhadas, redistribuídas, sublicenciadas, transmitidas, alteradas, comercializadas ou utilizadas para trabalhos sem a autorização por escrito da Sec4US
+
+          Sistema disponibilizado para:
+          {{ user_text }}
+
+          _____
+
+    - name: Base | Clear other MOTD
+      shell: rm -rf /etc/update-motd.d/*
+      ignore_errors: yes
+      become: yes
+
+    - name: Base | Configuring multipathconf
+      copy:
+        dest: "/etc/multipath.conf"
+        content: |
+          defaults {
+              user_friendly_names yes
+          }
+          blacklist {
+              devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st|sda)[0-9]*"
+          }
+        force: yes
+        owner: root
+        group: root
+        mode: 0600
+      register: multipathconf
+
+    - name: Base | Restart multipathd
+      ignore_errors: yes
+      service:
+        name: multipathd
+        state: restarted
+      when:
+        - multipathconf.changed
+
+    - name: Base | Ensure a locale en_US exists
+      community.general.locale_gen:
+        name: en_US
+        state: present
+
+    - name: Base | Ensure a locale en_US.UTF-8 exists
+      community.general.locale_gen:
+        name: en_US.UTF-8
+        state: present
+
+    - name: Base | Ensure a locale pt_BR exists
+      community.general.locale_gen:
+        name: pt_BR
+        state: present
+
+    - name: Base | Ensure a locale pt_BR.UTF-8 exists
+      community.general.locale_gen:
+        name: pt_BR.UTF-8
+        state: present
+
+    - name: Base | Set en_US.UTF-8 as default locale
+      shell: |
+        echo 'LANG="en_US.UTF-8"' > /etc/default/locale
+        echo 'LANGUAGE="en_US:en"' >> /etc/default/locale
+        echo 'LC_ALL="en_US.UTF-8"' >> /etc/default/locale
+
+    - name: Base | Set dateext at logrotate
+      command: echo "dateext" >> /etc/logrotate.conf
+
+    - name: Base | Set timezone at logrotate
+      command: timedatectl set-timezone America/Sao_Paulo
+
+    - name: Base | Generate root's SSH key
+      user:
+        name: "root"
+        generate_ssh_key: yes
+        ssh_key_type: rsa
+        ssh_key_bits: 4096
+        ssh_key_file: .ssh/id_rsa
+        force: no
+
+    - name: Base | Change SSH PasswordAuthentication to No
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        insertafter: '^#?PasswordAuthentication '
+        line: 'PasswordAuthentication no'
+
+    - name: Base | Restart SSH service
+      service:
+        name: sshd
+        state: restarted
+
+    - name: Base | Disable auto update
+      copy:
+        dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          APT::Periodic::Update-Package-Lists "0";
+          APT::Periodic::Download-Upgradeable-Packages "0";
+          APT::Periodic::AutocleanInterval "0";
+          APT::Periodic::Unattended-Upgrade "0";
+
+    - name: Base | Configuring SQUID
+      copy:
+        dest: "/etc/squid/squid.conf"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          cache deny all
+          acl localnet src 0.0.0.1-0.255.255.255	# RFC 1122 "this" network (LAN)
+          acl localnet src 10.0.0.0/8		# RFC 1918 local private network (LAN)
+          acl localnet src 100.64.0.0/10		# RFC 6598 shared address space (CGN)
+          acl localnet src 169.254.0.0/16 	# RFC 3927 link-local (directly plugged) machines
+          acl localnet src 172.16.0.0/12		# RFC 1918 local private network (LAN)
+          acl localnet src 192.168.0.0/16		# RFC 1918 local private network (LAN)
+          acl localnet src fc00::/7       	# RFC 4193 local private network range
+          acl localnet src fe80::/10      	# RFC 4291 link-local (directly plugged) machines
+          acl SSL_ports port 443
+          acl Safe_ports port 80		# http
+          acl Safe_ports port 21		# ftp
+          acl Safe_ports port 443		# https
+          acl Safe_ports port 70		# gopher
+          acl Safe_ports port 210		# wais
+          acl Safe_ports port 1025-65535	# unregistered ports
+          acl Safe_ports port 280		# http-mgmt
+          acl Safe_ports port 488		# gss-http
+          acl Safe_ports port 591		# filemaker
+          acl Safe_ports port 777		# multiling http
+          acl CONNECT method CONNECT
+          http_access deny !Safe_ports
+          http_access deny CONNECT !SSL_ports
+          http_access deny localhost manager
+          http_access deny manager
+          include /etc/squid/conf.d/*
+
+          #Auth
+          auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwords
+          auth_param basic realm WebAPIAuth
+
+          # ACL
+          acl authenticated proxy_auth REQUIRED
+          acl webapi dstdomain .webapiexploitation.com.br
+          http_access allow authenticated webapi
+          http_access deny all
+
+          http_port 48284
+          coredump_dir /var/spool/squid
+          refresh_pattern ^ftp:		1440	20%	10080
+          refresh_pattern ^gopher:	1440	0%	1440
+          refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
+          refresh_pattern .		0	20%	4320
+          visible_hostname student.webapiexploitation.com.br
+
+    - name: Base | Change squid user password
+      shell: htpasswd -bB -c /etc/squid/passwords {{ local_username }} {{ default_password }}
+      ignore_errors: no
+      become: yes
+
+    - name: Base | Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Base | Enable service squid and ensure it is not masked
+      ansible.builtin.systemd:
+        name: squid
+        enabled: yes
+        masked: no
+
+    - name: Base | Restarting squid
+      service:
+        name: squid
+        state: restarted

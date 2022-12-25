@@ -1,0 +1,40 @@
+{
+  "name": "back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon --inspect index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv-safe": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.15",
+    "md5": "^2.3.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
+    "nodemailer": "^6.4.17",
+    "uuidv4": "^6.2.6"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "nodemon": "^2.0.6"
+  },
+  "apidoc": {
+    "name": "Web API Exploitation",
+    "version": "1.0.0",
+    "description": "API Vulnerável pertencente ao treinamento de Web API Exploitation",
+    "title": "Web API Exploitation - Docs",
+    "url" : "https://api1.webapiexploitation.com.br/api/v1",
+    "sampleUrl" : "https://api1.webapiexploitation.com.br/api/v1",
+    "footer": {
+      "title": "Copyright © Sec4US",
+      "filename": "footer.md"
+    }
+  }
+}

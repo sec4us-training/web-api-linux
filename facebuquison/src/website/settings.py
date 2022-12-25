@@ -1,0 +1,3 @@
+URI_BASE="/"
+SESSION_COOKIE_PATH="/"
+SESSION_COOKIE_NAME="facebuquison"

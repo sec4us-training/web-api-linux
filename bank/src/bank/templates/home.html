@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sec4US - Bank</title>
+    <link rel='stylesheet' href='/static/css/font-awesome.min.css'>
+    <link rel="stylesheet" href="/static/css/profile.css">
+    
+    <meta property="og:image" content="/static/images/icon.png">
+    <meta property="og:image:width" content="500">
+    <meta property="og:image:height" content="500">
+
+    <link rel="icon" href="/static/images/cropped-icon2-32x32.png" sizes="32x32">
+    <link rel="icon" href="/static/images/cropped-icon2-192x192.png" sizes="192x192">
+
+</head>
+<body>
+<div class="container">
+    <div class="card-container">
+        <span class="pro">{{ user.provider }}</span>
+        <h3>{{ user.name }}</h3>
+        <h6>{{ user.email }}</h6>
+        <p>ID: {{ user.id }}</p>
+        <div class="buttons">
+            <button class="primary" onclick="window.location.href='{{ url_for('.logout') }}'">
+                Logout
+            </button>
+            <button class="primary ghost" onclick="window.location.href='{{ url_for('.clear') }}'">
+                Remover vínculos OAuth
+            </button>
+        </div>
+        <div class="skills">
+            <h6>Perfis OAuth vinculados</h6>
+            {% if user.providers %}
+            <ul>
+                {% for p in user.providers %}
+                <li>{{ p.name }} / {{ p.oauth_username }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>Nenhum perfil OAuth vinculado</p>
+            {% endif %}
+        </div>
+        <h6>Ou vincule um novo perfil OAuth</h6>
+        <div class="oauth">
+            {% for p in providers %}
+            <a href="{{ p.url }}" class="{{ p.aclass }} oauth-btn">
+            <i class="fa {{ p.iclass }}"></i>
+            {{ p.name }}
+            </a>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

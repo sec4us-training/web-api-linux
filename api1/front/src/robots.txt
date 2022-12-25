@@ -1,0 +1,6 @@
+# robots.txt: Treinamento Web APi Exploitation
+# Sec4Us
+
+User-agent: *
+
+Disallow: /api/v1

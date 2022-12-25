@@ -1,0 +1,80 @@
+- name: Burp | Set burpsuite_install_dir
+  ansible.builtin.set_fact:
+    burpsuite_install_dir: "/opt/BurpSuite{{ burpsuite_edition | capitalize }}"
+  when: burpsuite_install_dir is undefined
+
+- name: Burp | Retrieve release data from portswigger.net
+  ansible.builtin.set_fact:
+    burp_release_data: "{{ lookup('url', 'https://portswigger.net/burp/releases/data?lastId=-1&pageSize=20') }}"
+
+- name: Burp | Identify latest version number for release channel
+  ansible.builtin.set_fact:
+    _burpsuite_installer_version: "{{ burp_release_data | json_query(version_query) }}"
+  vars:
+    version_query: >-
+      ResultSet.Results[?
+        releaseChannels[0] == '{{ burpsuite_channel }}' &&
+        builds[?
+          ProductId == '{{ burpsuite_edition }}' &&
+          ProductPlatform == 'Linux'
+        ]
+      ].version | [0]
+
+- name: Burp | Latest version
+  ansible.builtin.debug:
+    msg: "Latest version for Burp Suite {{ burpsuite_edition | capitalize }} ({{ burpsuite_channel }}) is {{ _burpsuite_installer_version }}"
+
+- name: Burp | Identify installer checksum
+  ansible.builtin.set_fact:
+    burpsuite_installer_sha256_checksum: "{{ burp_release_data | json_query(checksum_query) }}"
+  vars:
+    checksum_query: >-
+      ResultSet.Results[].builds[?
+        Version == '{{ _burpsuite_installer_version }}' &&
+        ProductId == '{{ burpsuite_edition }}' &&
+        ProductPlatform == 'Linux'
+      ][].Sha256Checksum
+      | [0]
+
+- name: Burp | Set installer script filename
+  ansible.builtin.set_fact:
+    burpsuite_installer_script: "burpsuite_{{ burpsuite_edition }}_linux_v{{ _burpsuite_installer_version | regex_replace('\\.', '_') }}.sh"
+
+- name: Burp | Download Burp Suite installer
+  ansible.builtin.get_url:
+    url: "https://portswigger.net/burp/releases/download?product={{ burpsuite_edition }}&type=linux&version={{ _burpsuite_installer_version }}"
+    dest: "/tmp/{{ burpsuite_installer_script }}"
+    checksum: "sha256:{{ burpsuite_installer_sha256_checksum }}"
+    owner: "{{ local_username }}"
+    group: "{{ user_details.group }}"
+    mode: '0640'
+
+- name: Burp | Create response.varfile for unattended install
+  copy:
+    dest: "/tmp/burpsuite_response.varfile"
+    mode: '0640'
+    owner: "root"
+    group: "root"
+    content: |
+      # install4j response file for Burp Suite
+      sys.adminRights$Boolean=false
+      sys.installationDir={{ burpsuite_install_dir }}
+      sys.languageId=en
+      sys.programGroupDisabled$Boolean=false
+      sys.symlinkDir=/usr/bin
+
+
+- name: Burp | Install Burp Suite
+  shell: "cd /tmp; /bin/sh {{ burpsuite_installer_script }} -q -varfile burpsuite_response.varfile -overwrite"
+  changed_when: true
+  become: true
+
+- name: Burp | Clean-up files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/{{ burpsuite_installer_script }}"
+    - /tmp/burpsuite_response.varfile
+
+

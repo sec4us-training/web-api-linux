@@ -1,0 +1,131 @@
+body {
+    color: #646464;
+    background: #e2e2e2;
+} 
+.login-form {
+    width: 300px;
+    margin: 30px auto;
+    position: relative;
+}
+
+.login-form.authorize {
+    width: 500px;
+}
+
+.login-form h2 {
+    font-size: 26px;
+    font-weight: bold;
+    margin: 30px 0;
+    text-align: center;
+}
+
+.login-form.authorize h2 {
+    font-size: 20px;
+}
+
+.login-form h3 {
+    font-size: 29px;
+}
+
+.login-form .container {
+    color: #fff;
+    background: #405e9e;
+    background: radial-gradient(circle, #4d6ba9, #375595);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+    padding: 25px;
+    margin-bottom: 15px;
+}
+.login-form .form-control {
+    border-color: #dfdfdf;
+    box-shadow: none !important;
+}
+.login-form .form-control, .login-form .btn {
+    min-height: 38px;        
+}
+
+.login-form .b2 {
+    width: calc((100% - 10px)/2);
+    float: left;
+}
+
+.btn-block + .btn-block {
+    margin-top: 0px;
+    margin-left: 10px;
+}
+
+.login-form input {
+    border-radius: 0px 0px 0 0;
+    margin-top: -1px;
+}
+
+.login-form input:first-child {
+    border-radius: 2px 2px 0 0;
+    margin-top: 0px;
+}
+
+.login-form input:last-child {
+    border-radius: 0 0 2px 2px;
+}  
+
+
+.login-form .btn, .login-form .btn:active {        
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 2px;
+    background: #eeeeee;
+    color: #646464;
+    margin-bottom: 25px;
+}
+.login-form .btn:hover, .login-form .btn:focus{
+    background: #e4e4e4 !important;
+}
+.login-form .btn-primary {
+    background-color: #fff;
+    border-color: rgb(0, 123, 255);
+    color: rgb(0, 123, 255);
+}
+.login-form a {   
+    color: #405e9e;
+}
+.login-form form a {
+    color: #fff;
+}
+
+.login-form .logout {
+    color: #CFDFFF;
+    background-color: #5F7FC1;
+    border-radius: 3px;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 3px 7px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    border-color: #4967a5;
+}
+
+.login-form .logout:hover {
+    text-decoration: none;
+    color: #395797;
+    background-color: #EEE;
+}
+
+.error {
+
+    border: 1px solid #c80000;
+    border-radius: 3px;
+    color: #c80000;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    width: 100%;
+    -webkit-transition: opacity .4s;
+    -o-transition: opacity .4s;
+    -moz-transition: opacity .4s;
+    transition: opacity .4s;
+    margin-bottom: 20px;
+    background-color: #f9d1d1;
+    padding: 5px;
+
+
+}

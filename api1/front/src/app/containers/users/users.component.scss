@@ -1,0 +1,46 @@
+.table-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  table {
+    width: 95%;
+    margin-top: 50px;
+
+    tr:hover {
+      background-color: #fafafa;
+      cursor: pointer;
+    }
+
+    .mat-cell {
+      .create-icon,
+      .delete-icon {
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      mat-icon:last-child {
+        margin-left: 5px;
+      }
+
+      .create-icon:hover {
+        color: #673ab7;
+      }
+
+      .delete-icon:hover {
+        color: #ba000d;
+      }
+    }
+  }
+}
+
+.add-button-container {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
+
+  button {
+    width: 85px;
+    height: 85px;
+  }
+}

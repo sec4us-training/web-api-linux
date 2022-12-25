@@ -1,0 +1,52 @@
+.container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fafafa;
+
+  mat-card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 0;
+    min-height: 350px;
+    width: 400px;
+
+    mat-toolbar {
+      padding: 0 24px;
+
+      h1 {
+        font-size: 28px;
+      }
+
+      mat-icon:hover {
+        cursor: pointer;
+      }
+    }
+
+    .form {
+      padding: 0 24px;
+
+      form mat-form-field {
+        width: 100%;
+      }
+
+      button {
+        height: 45px;
+        width: 100%;
+        margin-top: 15px;
+      }
+    }
+
+    .forgot-password {
+      button span {
+        font-size: 12px;
+      }
+
+      padding-bottom: 16px;
+    }
+  }
+}

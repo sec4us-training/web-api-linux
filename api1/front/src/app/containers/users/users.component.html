@@ -1,0 +1,86 @@
+<app-toolbar pageTitle="Lista de usuários"></app-toolbar>
+
+<div class="table-container">
+  <table mat-table [dataSource]="users" class="mat-elevation-z8">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Nome</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.name }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>E-mail</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.email }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>Telefone</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.phone }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="document">
+      <th mat-header-cell *matHeaderCellDef>CPF</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.document }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="gender">
+      <th mat-header-cell *matHeaderCellDef>Sexo</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.gender }}
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="birth_date">
+      <th mat-header-cell *matHeaderCellDef>Data de nascimento</th>
+      <td
+        [routerLink]="['/user', element.id]"
+        mat-cell
+        *matCellDef="let element"
+      >
+        {{ element.birth_date | date: 'dd/MM/yyyy' }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>
+
+<div class="add-button-container">
+  <button
+    routerLink="/create-user"
+    routerLinkActive="active"
+    mat-fab
+    color="primary"
+    aria-label="New user"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>

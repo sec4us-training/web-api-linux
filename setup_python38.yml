@@ -1,0 +1,19 @@
+- name: Python 3.8 | Adding signing key
+  apt_repository:
+    repo: "ppa:deadsnakes/ppa"
+    state: present
+    update_cache: yes
+
+- name: Python 3.8 | Updating apt cache
+  apt:
+    update_cache: yes
+
+- name: Python 3.8 | Installing
+  apt:
+    pkg:
+      - python3.8
+      - python3-pip
+      - python3.8-dev
+      - python3.8-venv
+      - python3-setuptools 
+    state: latest

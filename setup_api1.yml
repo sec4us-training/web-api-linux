@@ -1,0 +1,239 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_tasks: 'user_details.yml'
+
+    - name: Getting NGINX user
+      ignore_errors: yes
+      shell: |
+        cat /etc/nginx/nginx.conf | grep -E '\buser\b' | sed 's/user//g;s/\;//g' | tr -d ' '
+      register: nginx_output
+
+    - name: Setting NGINX user
+      set_fact:
+        nginx_user: "{{ nginx_output.stdout }}"
+
+    - name: Nginx user
+      debug:
+        msg: "Nginx user is {{ nginx_user }}"
+
+    - name: Adding local user
+      user:
+        name: apivul
+        groups: "{{ nginx_user }}"
+        append: yes
+        state: present
+        createhome: yes
+        shell: /bin/bash
+
+    #- name: Adding local user
+    #  ignore_errors: yes
+    #  shell: |
+    #    adduser --disabled-password --ingroup {{ nginx_user }} --gecos "" apivul
+
+    - name: Generatting Salt
+      set_fact:
+        salt: "{{ lookup('community.general.random_string', upper=True, numbers=True, special=false, length=40) }}"
+
+    - name: Salt
+      debug:
+        msg: "Salt is {{ salt }}"
+
+    - name: Criando path
+      shell: |
+        mkdir -p /u01/www/apivul/
+        mkdir -p /u01/apivul/
+        rsync -av /tmp/web_api/api1/back/* /u01/apivul/
+      args:
+        warn: false
+
+    # o comando ng build gera alguns wargings e o ansible identifica como se fosse erro
+    # então estamos ignorando o erro e verificando no proximo passo se a compilacao ocorreu com sucesso
+    - name: Compilando Frontend - Step1
+      ignore_errors: yes
+      shell: |
+        cd /tmp/web_api/api1/front/
+        npm install @angular-devkit/build-angular --force
+        rm -rf ./dist/front/
+        ng config -g cli.warnings.versionMismatch false
+        ng build
+      args:
+        warn: false
+
+    - name: Compilando Frontend - Step2
+      shell: |
+        test -e /tmp/web_api/api1/front/dist/front/main.js # vai apresentar erro se não existir
+        cd /tmp/web_api/api1/front/
+        rsync -av ./dist/front/* /u01/www/apivul/
+      args:
+        warn: false
+
+    - name: Creating a .env.example file
+      copy:
+        dest: "/u01/apivul/.env.example"
+        content: |
+          SECRET=''
+          SALT_KEY=''
+          SMTP_MAILFROM='api1@webapiexploitation.com.br'
+          SMTP_HOST='127.0.0.1'
+          SMTP_PORT='25'
+          SMTP_SECURE=false
+          SMTP_USER=''
+          SMTP_PASS=''
+          DB_HOST='localhost'
+          DB_DATABASE='api'
+          DB_USER='root'
+          DB_PASS=''
+          TEMPLATES='./src/templates/'
+          PATH_BASE='/api/v1/'
+          UPLOAD_PATH='./uploads/'
+
+
+    - name: Creating a .env file
+      copy:
+        dest: "/u01/apivul/.env"
+        content: |
+          SECRET=12345678
+          SALT_KEY='{{ salt }}'
+          SMTP_MAILFROM='api1@webapiexploitation.com.br'
+          SMTP_HOST='127.0.0.1'
+          SMTP_PORT='25'
+          SMTP_SECURE=false
+          SMTP_USER=''
+          SMTP_PASS=''
+          DB_HOST='localhost'
+          DB_DATABASE='apivul'
+          DB_USER='apivul'
+          DB_PASS='123456'
+          TEMPLATES='./src/templates/'
+          PATH_BASE='/api/v1/'
+          UPLOAD_PATH='./uploads/'
+
+    - name: Creating a database structure script
+      copy:
+        dest: "/tmp/db1.sql"
+        content: |
+          DROP DATABASE IF EXISTS `apivul`;
+          CREATE DATABASE `apivul`;
+          DROP USER IF EXISTS 'apivul'@'localhost';
+          CREATE USER 'apivul'@'localhost' IDENTIFIED BY '123456';
+          GRANT ALL PRIVILEGES ON `apivul`.* TO 'apivul'@'localhost';
+          FLUSH PRIVILEGES;
+
+          USE apivul;
+
+          DROP TABLE IF EXISTS `apivul`.`users`;
+          CREATE TABLE `apivul`.`users` (
+             `id` varchar(45) NOT NULL,
+             `name` varchar(45) DEFAULT NULL,
+             `email` varchar(45) DEFAULT NULL,
+             `phone` varchar(45) DEFAULT NULL,
+             `document` varchar(45) DEFAULT NULL,
+             `gender` varchar(45) DEFAULT NULL,
+             `birth_date` varchar(45) DEFAULT NULL,
+             `status` varchar(45) DEFAULT NULL,
+             `role` varchar(45) DEFAULT NULL,
+             `password` varchar(45) DEFAULT NULL,
+             `photo` varchar(45) DEFAULT NULL,
+             `recovery_token` varchar(45) DEFAULT NULL,
+             PRIMARY KEY (`id`)
+           ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+          LOCK TABLES `apivul`.`users` WRITE;
+          /*!40000 ALTER TABLE `apivul`.`users` DISABLE KEYS */;
+          INSERT INTO `apivul`.`users` VALUES ('009d7b44-d8c3-4be2-afd4-4672801b51c5','Admin','admin@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'admin','ec9c706e05578777777e462e2d5123fb',NULL,NULL),('0c8aae59-72ac-467d-8975-12cbb56de305','Jhonatan Agostinho','jagostinho@webapiexploitation.com.br',NULL,NULL,'male','2001-01-22T03:00:00.000Z',NULL,'user','949acda9df9c8a59a9a6a248253f9f16',NULL,NULL),('143fba53-8e79-41b6-a88a-ec6ce487b255','Helvio Junior','hjunior@webapiexploitation.com.br',NULL,NULL,'male','1981-07-08T03:00:00.000Z',NULL,'user','5b5f4ecbdf5ae621ae7c2abe213efe0c',NULL,NULL),('192471f4-7589-40ca-b1d7-3ccd430e02b4','Jacson Alvarenga','jalvarenga@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','4b782f8791fac51cbfdc032abd0de0da',NULL,NULL),('1f6b5552-0e25-4284-8773-888ed56095c3','Valdemar Antunes','vantunes@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','ad022840640800442787bcc73564bd70',NULL,NULL),('3935e76a-52a6-4ff7-8f5c-c84f09fc92bf','Atila Fagundes','afagundes@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','6c985d62999586e6170b8dea5242bbf0',NULL,NULL),('47047b49-43e6-4d82-9926-c11eafb47245','Gyselle Pacheco','gpacheco@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','538da3591735bdc050adf0a2f67a5806',NULL,NULL),('50935929-ce6b-40d1-902d-a47ff44103a2','Bruno Abreu','babreu@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','faf9245f667d3be9c8989e3e164d76e5',NULL,NULL),('54027f35-12d4-4f8e-99ce-d981ad6f9f28','Patrik Sampaulo','psampaulo@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','75f43136cca5175ad9a12a5dfba426ca',NULL,NULL),('560bd643-6f7a-449d-9d55-9f4d91374541','Wenerton Alves','walves@webapiexploitation.com.br',NULL,NULL,NULL,NULL,NULL,'user','2d9d90552fc47332f5597c7ebd595bab',NULL,NULL);
+          /*!40000 ALTER TABLE `apivul`.`users` ENABLE KEYS */;
+          UNLOCK TABLES;
+
+
+    - name: Create database structure
+      shell: |
+        mysql -u root < /tmp/db1.sql
+        pw2=$(echo -n "access{{ salt }}" | md5sum | cut -d ' ' -f1)
+        echo "update users set password = '$pw2' where email = 'hjunior@webapiexploitation.com.br';" | mysql -u root apivul
+
+    - name: Ajustando permissões
+      shell: |
+        chown -R apivul:{{ nginx_user }} /u01/www/apivul/
+        chown -R apivul:{{ nginx_user }} /u01/apivul/
+      args:
+        warn: false
+
+    - name: Create PM2 data structure
+      shell: |
+        env PATH=$PATH:/usr/bin `which pm2` startup systemd -u apivul --hp /home/apivul
+        systemctl enable pm2-api1
+        mkdir -p /home/apivul/.pm2/
+        chmod -R 777 /home/apivul/.pm2/
+
+    - name: Creating a script
+      copy:
+        dest: "/tmp/exec1.sh"
+        content: |
+          cd /u01/apivul/
+          npm install express handlebars body-parser
+          pm2 start api.js
+          pm2 save
+          rm -rf ./help
+          apidoc -i src/ -f .js -o help/;
+
+    - name: Create PM2
+      shell: |
+        chmod +x /tmp/exec1.sh
+        sudo -u apivul bash -c "/tmp/exec1.sh"
+      args:
+        warn: false
+
+    - name: Restart PM2
+      shell: |
+        sudo -u apivul bash -c "cd ~; pm2 restart api"
+      args:
+        warn: false
+
+    - name: Creating a Nginx api1 config file
+      copy:
+        dest: "/etc/nginx/conf.d/apivul.conf"
+        content: |
+          server {
+              #listen       80;
+              listen       443 ssl;
+              server_name  api1.webapiexploitation.com.br;
+              add_header x-stream be2;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+                  try_files $uri $uri/ /index.html =404;
+                  root /u01/www/apivul/;
+              }
+
+              location /api/ {
+                  proxy_pass http://localhost:4000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+
+              #error_page  404              /404.html;
+
+              # redirect server error pages to the static page /50x.html
+              #
+              error_page   500 502 503 504  /50x.html;
+              location = /50x.html {
+                  root   /usr/share/nginx/html;
+              }
+
+          }
+
+    - name: Reload nginx config
+      shell: |
+        nginx -s reload
+      args:
+        warn: false

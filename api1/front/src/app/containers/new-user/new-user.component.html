@@ -1,0 +1,205 @@
+<div class="container">
+  <app-toolbar pageTitle="Novo usuário"></app-toolbar>
+  <div class="content">
+    <div class="photo-container">
+      <div class="photo">
+        <div class="user-logo">
+          <div class="user-header"></div>
+          <div class="user-body"></div>
+        </div>
+      </div>
+      <div class="user-links">
+        <input
+          type="file"
+          (change)="onFileChanged($event)"
+          style="display: none"
+          #fileInput
+        />
+        <a
+          mat-button
+          (click)="uploadContainerIsVisible = !uploadContainerIsVisible"
+          >Cadastrar foto de perfil</a
+        >
+      </div>
+      <div *ngIf="uploadContainerIsVisible" class="upload-file">
+        <button
+          mat-stroked-button
+          (click)="fileInput.click()"
+          style="margin: 10px 0"
+        >
+          Selecionar arquivo
+        </button>
+        <button (click)="onUpload()" mat-stroked-button color="primary">
+          Fazer upload
+        </button>
+      </div>
+    </div>
+
+    <div class="personal-data-container">
+      <h2>Formulário de cadastro</h2>
+      <form [formGroup]="userForm" (submit)="onSubmit()">
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>Nome</mat-label>
+            <input formControlName="name" type="text" matInput required />
+            <mat-error *ngIf="userForm.controls.name?.invalid">
+              <span *ngIf="userForm.controls.name.errors?.required"
+                >Nome é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>E-mail</mat-label>
+            <input formControlName="email" type="email" matInput required />
+            <mat-error *ngIf="userForm.controls.email?.invalid">
+              <span *ngIf="userForm.controls.email.errors?.required"
+                >E-mail é <strong>obrigatório</strong>.</span
+              >
+              <span *ngIf="userForm.controls.email.errors?.email"
+                >E-mail inválido.</span
+              >
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>CPF</mat-label>
+            <input
+              mask="000.000.000-00"
+              formControlName="document"
+              type="text"
+              matInput
+            />
+            <mat-error *ngIf="userForm.controls.document?.invalid">
+              <span *ngIf="userForm.controls.document.errors?.required"
+                >CPF é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Telefone</mat-label>
+            <input
+              mask="(00) 00000-0000"
+              formControlName="phone"
+              type="tel"
+              matInput
+            />
+            <mat-error *ngIf="userForm.controls.phone?.invalid">
+              <span *ngIf="userForm.controls.phone.errors?.required"
+                >Telefone é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Sexo</mat-label>
+            <mat-select formControlName="gender" required>
+              <mat-option *ngFor="let gender of genders" [value]="gender.value">
+                {{ gender.viewValue }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.controls.gender?.invalid">
+              <span *ngIf="userForm.controls.gender.errors?.required"
+                >Sexo é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Tipo</mat-label>
+            <mat-select formControlName="role" required>
+              <mat-option *ngFor="let role of roles" [value]="role.value">
+                {{ role.viewValue }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.controls.gender?.invalid">
+              <span *ngIf="userForm.controls.gender.errors?.required"
+                >Tipo é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Data de nascimento</mat-label>
+            <input
+              [matDatepicker]="picker"
+              formControlName="birth_date"
+              type="text"
+              matInput
+              required
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="userForm.controls.birth_date?.invalid">
+              <span *ngIf="userForm.controls.phone.errors?.required"
+                >Data de nascimento é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field appearance="outline" fxFlex="49">
+            <mat-label>Senha</mat-label>
+            <input
+              formControlName="password"
+              type="password"
+              matInput
+              required
+            />
+            <mat-error *ngIf="userForm.controls?.password?.invalid">
+              <span *ngIf="userForm.controls?.password?.errors?.required"
+                >Senha é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="49.5">
+            <mat-label>Confirmar Senha</mat-label>
+            <input
+              formControlName="conf_password"
+              type="password"
+              matInput
+              required
+            />
+            <mat-error *ngIf="userForm.hasError('notSame')">
+              Senhas não coincidem
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <div fxLayout="row">
+            <button
+              type="submit"
+              mat-raised-button
+              color="primary"
+              style="width: 100px"
+            >
+              Salvar
+            </button>
+            <button
+              type="reset"
+              mat-button
+              style="margin-left: 15px; width: 100px"
+            >
+              Limpar
+            </button>
+          </div>
+          <button
+            routerLink="/users"
+            type="button"
+            mat-stroked-button
+            style="width: 100px"
+          >
+            Voltar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,356 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_tasks: 'user_details.yml'
+
+    - name: Getting NGINX user
+      ignore_errors: yes
+      shell: |
+        cat /etc/nginx/nginx.conf | grep -E '\buser\b' | sed 's/user//g;s/\;//g' | tr -d ' '
+      register: nginx_output
+
+    - name: Setting NGINX user
+      set_fact:
+        nginx_user: "{{ nginx_output.stdout }}"
+
+    - name: Nginx user
+      debug:
+        msg: "Nginx user is {{ nginx_user }}"
+
+    - name: Adding local user
+      user:
+        name: bank
+        groups: "{{ nginx_user }}"
+        append: yes
+        state: present
+        createhome: yes
+        shell: /bin/bash
+
+    #- name: Adding local user
+    #  ignore_errors: yes
+    #  shell: |
+    #    adduser --disabled-password --ingroup {{ nginx_user }} --gecos "" bank
+
+    - name: Create data structure
+      shell: |
+        mkdir -p /u01/www/bank/
+        mkdir -p /u01/www/cathub/
+        mkdir -p /u01/www/facebuquison/
+        rsync -av /tmp/web_api/bank/src/* /u01/www/bank/
+        rsync -av /tmp/web_api/cathub/src/* /u01/www/cathub/
+        rsync -av /tmp/web_api/facebuquison/src/* /u01/www/facebuquison/
+        chown -R bank:{{ nginx_user }} /u01/www/bank/
+        chown -R bank:{{ nginx_user }} /u01/www/cathub/
+        chown -R bank:{{ nginx_user }} /u01/www/facebuquison/
+        chown -R bank:{{ nginx_user }} /tmp/web_api/oauthlib*
+
+      args:
+        warn: false
+
+    - name: Install Bank Python environment
+      shell: |
+        cat << EOF > /tmp/instala.sh
+        cd /u01/www/
+        python3.8 -m venv bank
+        source bank/bin/activate
+        pip install -U pip
+        pip install wheel uWSGI
+        cd /tmp/web_api/oauthlib
+        pip install .
+        pip install -r /tmp/web_api/bank/requirements.txt
+        EOF
+
+        chmod 777 /tmp/instala.sh
+
+        sudo -u bank bash -c "/tmp/instala.sh"
+      args:
+        warn: false
+
+
+    - name: Install Cathub Python environment
+      shell: |
+        cat << EOF > /tmp/instala.sh
+        cd /u01/www/
+        python3.8 -m venv cathub
+        source cathub/bin/activate
+        pip install -U pip
+        pip install wheel uWSGI
+        cd /tmp/web_api/oauthlib
+        pip install .
+        pip install -r /tmp/web_api/cathub/requirements.txt
+        EOF
+
+        chmod 777 /tmp/instala.sh
+
+        sudo -u bank bash -c "/tmp/instala.sh"
+      args:
+        warn: false
+
+    - name: Install Facebuquison Python environment
+      shell: |
+        cat << EOF > /tmp/instala.sh
+        cd /u01/www/
+        python3.8 -m venv facebuquison
+        source facebuquison/bin/activate
+        pip install -U pip
+        pip install wheel uWSGI
+        cd /tmp/web_api/oauthlib
+        pip install .
+        pip install -r /tmp/web_api/facebuquison/requirements.txt
+
+        EOF
+
+        chmod 777 /tmp/instala.sh
+
+        sudo -u bank bash -c "/tmp/instala.sh"
+      args:
+        warn: false
+
+
+    - name: Creating a Nginx Bank config file
+      copy:
+        dest: "/etc/nginx/conf.d/bank.conf"
+        content: |
+          server {
+              #listen      80;
+              listen       443 ssl;
+              server_name sec4usbank.webapiexploitation.com.br;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+
+                  uwsgi_param   Host                 $host;
+                  uwsgi_param   X-Real-IP            $remote_addr;
+                  uwsgi_param   X-Forwarded-For      $proxy_add_x_forwarded_for;
+                  uwsgi_param   X-Forwarded-Proto    $http_x_forwarded_proto;
+
+                  proxy_read_timeout 600;
+                  proxy_connect_timeout 1d;
+                  proxy_max_temp_file_size 5024m;
+                  proxy_send_timeout 600;
+                  uwsgi_read_timeout 600;
+                  uwsgi_send_timeout 600;
+                  include uwsgi_params;
+                  uwsgi_pass unix:/tmp/bank.sock;
+
+              }
+
+          }
+
+
+    - name: Creating a Nginx cathub config file
+      copy:
+        dest: "/etc/nginx/conf.d/cathub.conf"
+        content: |
+          server {
+              #listen      80;
+              listen       443 ssl;
+              server_name cathub.webapiexploitation.com.br;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+
+                  uwsgi_param   Host                 $host;
+                  uwsgi_param   X-Real-IP            $remote_addr;
+                  uwsgi_param   X-Forwarded-For      $proxy_add_x_forwarded_for;
+                  uwsgi_param   X-Forwarded-Proto    $http_x_forwarded_proto;
+
+                  proxy_read_timeout 600;
+                  proxy_connect_timeout 1d;
+                  proxy_max_temp_file_size 5024m;
+                  proxy_send_timeout 600;
+                  uwsgi_read_timeout 600;
+                  uwsgi_send_timeout 600;
+                  include uwsgi_params;
+                  uwsgi_pass unix:/tmp/cathub.sock;
+
+              }
+
+          }
+
+    - name: Creating a Nginx facebuquison config file
+      copy:
+        dest: "/etc/nginx/conf.d/facebuquison.conf"
+        content: |
+          server {
+              #listen      80;
+              listen       443 ssl;
+              server_name facebuquison.webapiexploitation.com.br;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+
+                  uwsgi_param   Host                 $host;
+                  uwsgi_param   X-Real-IP            $remote_addr;
+                  uwsgi_param   X-Forwarded-For      $proxy_add_x_forwarded_for;
+                  uwsgi_param   X-Forwarded-Proto    $http_x_forwarded_proto;
+
+                  proxy_read_timeout 600;
+                  proxy_connect_timeout 1d;
+                  proxy_max_temp_file_size 5024m;
+                  proxy_send_timeout 600;
+                  uwsgi_read_timeout 600;
+                  uwsgi_send_timeout 600;
+                  include uwsgi_params;
+                  uwsgi_pass unix:/tmp/facebuquison.sock;
+
+              }
+
+          }
+
+    - name: Creating a bank service file
+      copy:
+        dest: "/etc/systemd/system/bank.service"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          [Unit]
+          Description=Sec4US Bank Service
+          After=network.target
+
+          [Service]
+          User = bank
+          Group = {{ nginx_user }}
+          WorkingDirectory=/u01/www/bank/
+          Environment="PATH=/u01/www/bank/bin"
+          ExecStart=/u01/www/bank/bin/uwsgi --socket /tmp/bank.sock --chmod-socket=666 -w wsgi:app --processes=1  --reload-mercy=1 --worker-reload-mercy=1 --req-logger file:/dev/nul --touch-reload /u01/www/bank/bank/config.py
+
+          [Install]
+          WantedBy=multi-user.target
+
+
+    - name: Creating a cathub service file
+      copy:
+        dest: "/etc/systemd/system/cathub.service"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          [Unit]
+          Description=Sec4US Cathub Service
+          After=network.target
+
+          [Service]
+          User = bank
+          Group = {{ nginx_user }}
+          WorkingDirectory=/u01/www/cathub/
+          Environment="PATH=/u01/www/cathub/bin;AUTHLIB_INSECURE_TRANSPORT=1"
+          ExecStart=/u01/www/cathub/bin/uwsgi --socket /tmp/cathub.sock --chmod-socket=666 -w wsgi:app --processes=1  --reload-mercy=1 --worker-reload-mercy=1 --req-logger file:/dev/nul --touch-reload /u01/www/cathub/website/settings.py
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Creating a facebuquison service file
+      copy:
+        dest: "/etc/systemd/system/facebuquison.service"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          [Unit]
+          Description=Sec4US Facebuquison Service
+          After=network.target
+
+          [Service]
+          User = bank
+          Group = {{ nginx_user }}
+          WorkingDirectory=/u01/www/facebuquison/
+          Environment="PATH=/u01/www/facebuquison/bin;AUTHLIB_INSECURE_TRANSPORT=1"
+          ExecStart=/u01/www/facebuquison/bin/uwsgi --socket /tmp/facebuquison.sock --chmod-socket=666 -w wsgi:app --processes=1  --reload-mercy=1 --worker-reload-mercy=1 --req-logger file:/dev/nul --touch-reload /u01/www/facebuquison/website/settings.py
+
+          [Install]
+          WantedBy=multi-user.target
+
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Enable service Bank
+      ansible.builtin.systemd:
+        name: bank
+        enabled: yes
+        masked: no
+
+    - name: Enable service Cathub
+      ansible.builtin.systemd:
+        name: cathub
+        enabled: yes
+        masked: no
+
+    - name: Enable service Facebuquison
+      ansible.builtin.systemd:
+        name: facebuquison
+        enabled: yes
+        masked: no
+
+    - name: Creatting Bank config file
+      copy:
+        dest: "/u01/www/bank/bank/config.ini"
+        owner: bank
+        group: "{{ nginx_user }}"
+        mode: 0644
+        force: yes
+        content: |
+          [GENERAL]
+          debug=True
+
+          [DATABASE]
+          user = bank
+          passwd = 123456
+          db = bank
+          host = localhost
+          port = 3306
+          charset = utf8
+          autocommit = False
+
+    - name: Creating a database structure script
+      copy:
+        dest: "/tmp/db2.sql"
+        content: |
+          DROP DATABASE IF EXISTS `bank`;
+          CREATE DATABASE `bank`;
+          DROP USER IF EXISTS 'bank'@'localhost';
+          CREATE USER 'bank'@'localhost' IDENTIFIED BY '123456';
+          GRANT ALL PRIVILEGES ON `bank`.* TO 'bank'@'localhost';
+          FLUSH PRIVILEGES;
+
+    - name: Create database structure
+      shell: |
+        mysql -u root < /tmp/db2.sql
+        mysql -u root bank < /tmp/web_api/bank/database/mysql.sql
+
+    - name: Restart Bank service
+      service:
+        name: bank
+        state: restarted
+
+    - name: Restart Cathub service
+      service:
+        name: cathub
+        state: restarted
+
+    - name: Restart Facebuquison service
+      service:
+        name: facebuquison
+        state: restarted
+
+    - name: Reload nginx config
+      shell: |
+        nginx -s reload
+      args:
+        warn: false

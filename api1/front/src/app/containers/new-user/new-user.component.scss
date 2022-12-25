@@ -1,0 +1,96 @@
+.container {
+  width: 100%;
+  height: 100%;
+
+  .content {
+    width: 100%;
+    display: flex;
+
+    .photo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      width: 30%;
+      padding-top: 40px;
+      padding-bottom: 30px;
+
+      .upload-file {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .photo {
+        background: #7d7d7d;
+        width: 280px;
+        height: 280px;
+        border-radius: 330px;
+
+        .user-logo {
+          width: 100%;
+          height: 100%;
+
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+
+          .user-header {
+            height: 100px;
+            width: 100px;
+            border-radius: 160px;
+            background-color: #fafafa;
+            margin-bottom: 10px;
+          }
+
+          .user-body {
+            margin-bottom: 30px;
+            height: 60px;
+            width: 180px;
+            border-top-left-radius: 160px;
+            border-top-right-radius: 160px;
+            border-bottom: 0;
+            background-color: #fafafa;
+          }
+        }
+      }
+
+      mat-icon {
+        font-size: 380px;
+        color: #7d7d7d;
+      }
+
+      .user-links {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+
+        span {
+          margin-bottom: 5px;
+          cursor: pointer;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .personal-data-container {
+      width: 70%;
+      padding-right: 70px;
+      padding-top: 40px;
+      padding-bottom: 30px;
+
+      h2 {
+        color: #343232;
+      }
+
+      mat-form-field {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+    }
+  }
+}

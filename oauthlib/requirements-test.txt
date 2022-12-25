@@ -1,0 +1,5 @@
+cryptography
+requests
+mock
+pytest
+coverage

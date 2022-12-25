@@ -1,0 +1,84 @@
+<div class="container">
+  <mat-card fxLayout="column" fxLayoutAlign="space-between">
+    <mat-toolbar fxLayout="row" fxLayoutAlign="space-between center">
+      <h1>Fazer Login</h1>
+      <mat-icon (click)="backToEmailSection()" *ngIf="section === 'password'" color="primary"
+        >keyboard_backspace</mat-icon
+      >
+    </mat-toolbar>
+    <div *ngIf="section === 'email'" class="form" fxLayout="column">
+      <h4>Insira seu e-mail para continuar:</h4>
+      <form [formGroup]="emailForm" (submit)="onSubmitEmailForm()">
+        <mat-form-field appearance="outline" full>
+          <mat-label>E-mail</mat-label>
+          <input formControlName="email" type="text" matInput required />
+          <mat-error *ngIf="emailForm.controls.email?.invalid">
+            <span *ngIf="emailForm.controls.email.errors?.required"
+              >Email é um campo <strong>obrigatório</strong>.</span
+            >
+            <span
+              *ngIf="
+                !emailForm.controls.email.errors?.required &&
+                emailForm.controls.email.errors
+              "
+              >E-mail inválido.</span
+            >
+          </mat-error>
+        </mat-form-field>
+        <button type="submit" mat-raised-button color="primary">
+          <mat-icon *ngIf="loading; else textSignin"
+            ><mat-spinner color="accent" diameter="20"> </mat-spinner
+          ></mat-icon>
+          <ng-template #textSignin>
+            <span>Continuar</span>
+          </ng-template>
+        </button>
+      </form>
+    </div>
+
+    <div *ngIf="section === 'password'" class="form" fxLayout="column">
+      <h4>Insira sua senha para entrar:</h4>
+      <form [formGroup]="passwordForm" (submit)="onSubmitPasswordForm()">
+        <mat-form-field appearance="outline">
+          <mat-label>Senha</mat-label>
+          <input formControlName="password" type="password" matInput required />
+          <mat-error *ngIf="passwordForm.controls.password?.invalid">
+            <span *ngIf="passwordForm.controls.password?.errors?.required"
+              >Senha é um campo <strong>obrigatório</strong>.</span
+            >
+          </mat-error>
+          <mat-error *ngIf="passwordForm.controls.password?.invalid">
+            <span *ngIf="passwordForm.controls.password?.errors?.serverError">
+              {{ passwordForm.get("password")?.errors?.serverError }}
+            </span>
+          </mat-error>
+        </mat-form-field>
+        <button type="submit" mat-raised-button color="primary">
+          <mat-icon *ngIf="loading; else textSignin"
+            ><mat-spinner color="accent" diameter="20"> </mat-spinner
+          ></mat-icon>
+          <ng-template #textSignin>
+            <span>Entrar</span>
+          </ng-template>
+        </button>
+      </form>
+    </div>
+
+    <div *ngIf="section === 'email'"></div>
+
+    <div
+      *ngIf="section === 'password'"
+      fxLayoutAlign="center"
+      class="forgot-password"
+    >
+      <button
+        routerLink="/recovery-password"
+        routerLinkActive="active"
+        type="button"
+        mat-button
+      >
+        <span>Esqueci a senha</span>
+      </button>
+    </div>
+  </mat-card>
+</div>

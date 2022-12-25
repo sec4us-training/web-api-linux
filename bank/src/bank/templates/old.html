@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OAuth Provider 1</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:image" content="/assets/icon.png">
+    <link rel="icon" type="image/x-icon" href="/assets/icon.png" />
+  </head>
+  <body class="mat-typography">
+    <h2>OAuth Tester</h2>
+    {% if user %}
+    <style>pre{white-space:wrap}</style>
+    <div>Logged in as: (<a href="{{ url_for('.logout') }}">Log Out</a>)
+      <br />E-mail: <strong>{{ user.email }}</strong> 
+      <br />Local Id:  <strong>{{ user.id }}</strong> 
+      <br />Authorized by:  <strong>provider {{ user.provider }} </strong> 
+    </div>
+    
+    <p>Grant OAuth Access</p>
+      <a href="/provider1/oauth/authorize?response_type=code&client_id={{ client1 }}&scope=profile&redirect_uri={{ url1 }}"> Provider 1 </a>
+      <br /><br />
+      <a href="/provider2/oauth/authorize?response_type=code&client_id={{ client2 }}&scope=profile&redirect_uri={{ url2 }}"> Provider 2 </a>
+    {% else %}
+      
+      <p>Login usuário/senha</p>
+      <div class="error" style="color: red;">{{ error }}</div>
+      <form action="" method="post">
+        <input type="text" name="email" placeholder="email">
+        <input type="password" name="password" placeholder="password">
+        <button type="submit">Login</button>
+      </form>
+
+      <br />
+      <p>Login OAuth</p>
+      <a href="/provider1/oauth/authorize?response_type=code&client_id={{ client1 }}&scope=profile&redirect_uri={{ url1 }}"> Provider 1 </a>
+      <br /><br />
+      <a href="/provider2/oauth/authorize?response_type=code&client_id={{ client2 }}&scope=profile&redirect_uri={{ url2 }}"> Provider 2 </a>
+    {% endif %}
+  </body>
+</html>
+

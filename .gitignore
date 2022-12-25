@@ -1,0 +1,64 @@
+##### BACK-END
+
+back/node_modules
+back/.vscode
+back/doc/*
+back/help/*
+
+
+##### FRONT-END
+
+front/node_modules
+
+# compiled output
+front/dist
+front/tmp
+front/out-tsc
+# Only exists if Bazel was run
+front/bazel-out
+
+# dependencies
+front/node_modules
+
+# profiling files
+front/chrome-profiler-events*.json
+front/speed-measure-plugin*.json
+
+# IDEs and editors
+front/.idea
+front/.project
+front/.classpath
+front/.c9/
+front/*.launch
+front/.settings/
+front/*.sublime-workspace
+
+# IDE - VSCode
+front/.vscode/*
+front/!.vscode/settings.json
+front/!.vscode/tasks.json
+front/!.vscode/launch.json
+front/!.vscode/extensions.json
+front/.history/*
+
+# misc
+front/.sass-cache
+front/connect.lock
+front/coverage
+front/libpeerconnection.log
+front/npm-debug.log
+front/yarn-error.log
+front/testem.log
+front/typings
+
+# System Files
+front/.DS_Store
+front/Thumbs.db
+
+# .env
+.env
+front/.env
+back/.env
+
+# arquivos mac
+.DS_Store

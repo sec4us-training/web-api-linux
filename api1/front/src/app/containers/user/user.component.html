@@ -1,0 +1,181 @@
+<div class="container">
+  <app-toolbar [pageTitle]="title"></app-toolbar>
+  <div class="content">
+    <div class="photo-container">
+      <div class="photo">
+        <div class="user-logo">
+          <img
+            *ngIf="user?.photo; else userlogo"
+            [src]="user?.photo"
+            alt="user"
+          />
+          <ng-template #userlogo>
+            <div class="user-header"></div>
+            <div class="user-body"></div>
+          </ng-template>
+        </div>
+      </div>
+      <div class="user-links">
+        <div class="user-links">
+          <input
+            type="file"
+            (change)="onFileChanged($event)"
+            style="display: none"
+            #fileInput
+          />
+          <a
+            mat-button
+            (click)="uploadContainerIsVisible = !uploadContainerIsVisible"
+            >Alterar foto de perfil</a
+          >
+        </div>
+        <div *ngIf="uploadContainerIsVisible" class="upload-file">
+          <button
+            mat-stroked-button
+            (click)="fileInput.click()"
+            style="margin: 10px 0"
+          >
+            {{selectedFile ? 'OK' : 'Selecionar arquivo'}}
+          </button>
+          <button (click)="onUpload()" mat-stroked-button color="primary">
+            Fazer upload
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="personal-data-container">
+      <h2>Dados pessoais</h2>
+      <form [formGroup]="userForm" *ngIf="userForm" (submit)="onSubmit()">
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>Nome</mat-label>
+            <input formControlName="name" type="text" matInput required />
+            <mat-error *ngIf="userForm.controls.name?.invalid">
+              <span *ngIf="userForm.controls.name.errors?.required"
+                >Nome é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>E-mail</mat-label>
+            <input formControlName="email" type="email" matInput required />
+            <mat-error *ngIf="userForm.controls.email?.invalid">
+              <span *ngIf="userForm.controls.email.errors?.required"
+                >E-mail é <strong>obrigatório</strong>.</span
+              >
+              <span *ngIf="userForm.controls.email.errors?.email"
+                >E-mail inválido.</span
+              >
+            </mat-error>
+          </mat-form-field>
+          <mat-form-field fxFlex="32" appearance="outline">
+            <mat-label>CPF</mat-label>
+            <input
+              mask="000.000.000-00"
+              formControlName="document"
+              type="text"
+              matInput
+            />
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field appearance="outline" fxFlex="49">
+            <mat-label>Telefone</mat-label>
+            <input
+              mask="(00) 00000-0000"
+              formControlName="phone"
+              type="tel"
+              matInput
+            />
+            <mat-error *ngIf="userForm.controls.phone?.invalid">
+              <span *ngIf="userForm.controls.phone.errors?.required"
+                >Telefone é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Sexo</mat-label>
+            <mat-select formControlName="gender">
+              <mat-option *ngFor="let gender of genders" [value]="gender.value">
+                {{ gender.viewValue }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="24">
+            <mat-label>Data de nascimento</mat-label>
+            <input
+              [matDatepicker]="picker"
+              formControlName="birth_date"
+              type="text"
+              matInput
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="space-between">
+          <mat-form-field appearance="outline" fxFlex="31">
+            <mat-label>Senha atual</mat-label>
+            <input
+              formControlName="old_password"
+              type="password"
+              matInput
+            />
+            <mat-error *ngIf="userForm.controls?.old_password?.invalid">
+              <span *ngIf="userForm.controls?.old_password?.errors?.required"
+                >Nova atual é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="31">
+            <mat-label>Nova senha</mat-label>
+            <input
+              formControlName="new_password"
+              type="password"
+              matInput
+            />
+            <mat-error *ngIf="userForm.controls?.new_password?.invalid">
+              <span *ngIf="userForm.controls?.new_password?.errors?.required"
+                >Nova senha é <strong>obrigatório</strong>.</span
+              >
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" fxFlex="31">
+            <mat-label>Confirmar senha</mat-label>
+            <input
+              formControlName="conf_new_password"
+              type="password"
+              matInput
+            />
+            <mat-error *ngIf="userForm.hasError('notSame')">
+              Senhas não coincidem
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div fxLayout="row" fxLayoutAlign="flex-start">
+          <div fxLayout="row">
+            <button
+              type="submit"
+              mat-raised-button
+              color="primary"
+              style="width: 100px"
+            >
+              Atualizar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

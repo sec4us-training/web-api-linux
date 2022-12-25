@@ -1,0 +1,96 @@
+- name: NGINX | Adding NGINX signing key
+  apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+
+- name: NGINX | Adding sources.list deb url for NGINX
+  lineinfile: dest=/etc/apt/sources.list line="deb http://nginx.org/packages/mainline/ubuntu/ {{ ansible_distribution_release }} nginx"
+
+- name: NGINX | Updating apt cache
+  apt:
+    update_cache: yes
+
+- name: NGINX | Installing NGINX
+  apt:
+    pkg:
+    - nginx
+    state: latest
+
+- name: NGINX | Starting NGINX
+  service:
+    name: nginx
+    state: started
+
+- name: NGINX | Getting NGINX User conf
+  shell: |
+    cat /etc/nginx/nginx.conf | grep -E '\buser\b' | sed 's/user//g;s/\;//g' | tr -d ' ' > /tmp/nginxuser.txt
+
+- name: NGINX | Configuring NGINX
+  copy:
+    dest: "/etc/nginx/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+    force: yes
+    content: |
+      user  NGINX_USER;
+      worker_processes  1;
+
+      error_log  /var/log/nginx/error.log warn;
+      pid        /var/run/nginx.pid;
+
+
+      events {
+          worker_connections  1024;
+      }
+
+
+      http {
+          include       /etc/nginx/mime.types;
+          default_type  application/octet-stream;
+
+          limit_conn_zone $binary_remote_addr zone=addr:10m;
+          server_names_hash_bucket_size  256;
+
+          client_max_body_size 10m;
+
+          log_format log_standard '$remote_addr, $http_x_forwarded_for - $remote_user [$time_local] "$request_method $scheme://$host$request_uri $server_protocol" $status $body_bytes_sent "$http_referer" "$http_user_agent" to: $upstream_addr';
+
+          access_log /var/log/nginx/access.log log_standard;
+          error_log /var/log/nginx/error.log;
+
+          sendfile        on;
+          #tcp_nopush     on;
+
+          keepalive_timeout  65;
+
+          #gzip  on;
+
+          include /etc/nginx/conf.d/*.conf;
+      }
+
+- name: NGINX | Adjusting NGINX User conf
+  shell: |
+    nginx_user=$(cat /tmp/nginxuser.txt | tr -d '\n')
+    echo "Nginx User: $nginx_user"
+    sed -i "s/NGINX_USER/$nginx_user/g" /etc/nginx/nginx.conf
+
+- name: NGINX | Removing default NGINX configs
+  shell: |
+    rm -rf /etc/nginx/conf.d/*
+  args:
+    warn: false
+
+- name: NGINX | Restarting Nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: NGINX | Create a self signed certificate
+  shell: |
+    cd /tmp/
+    mkdir -p /etc/nginx/certs/
+    openssl req -x509 -subj '/CN=*.webapiexploitation.com.br' -newkey rsa:4096 -passout pass:123456 -keyout key.pem -out cert.pem -sha256 -days 100
+    openssl rsa -in key.pem -passin pass:123456 -out /etc/nginx/certs/webapiexploitation.com.br.key
+    cp cert.pem /etc/nginx/certs/webapiexploitation.com.br.cer
+  args:
+    warn: false
+

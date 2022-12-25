@@ -1,0 +1,162 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_tasks: 'user_details.yml'
+
+    - name: Getting NGINX user
+      ignore_errors: yes
+      shell: |
+        cat /etc/nginx/nginx.conf | grep -E '\buser\b' | sed 's/user//g;s/\;//g' | tr -d ' '
+      register: nginx_output
+
+    - name: Setting NGINX user
+      set_fact:
+        nginx_user: "{{ nginx_output.stdout }}"
+
+    - name: Nginx user
+      debug:
+        msg: "Nginx user is {{ nginx_user }}"
+
+    - name: Adding local user
+      user:
+        name: apivul2
+        groups: "{{ nginx_user }}"
+        append: yes
+        state: present
+        createhome: yes
+        shell: /bin/bash
+
+    #- name: Adding local user
+    #  ignore_errors: yes
+    #  shell: |
+    #    adduser --disabled-password --ingroup {{ nginx_user }} --gecos "" apivul2
+
+    - name: Base | Install a list of packages
+      apt:
+        pkg:
+        - maven
+
+    - name: Getting JAVA version
+      ignore_errors: yes
+      shell: |
+        java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+      register: java_output
+
+    - name: Setting JAVA version
+      set_fact:
+        java_version: "{{ java_output.stdout }}"
+
+    - name: JAVA version
+      debug:
+        msg: "JAVA version is: {{ java_version }}"
+
+    - name: Creating a database structure script
+      copy:
+        dest: "/tmp/db1.sql"
+        content: |
+          CREATE DATABASE api2;
+          CREATE USER 'api2'@'localhost' IDENTIFIED BY '123456';
+          GRANT ALL PRIVILEGES ON `api2`.* TO 'api2'@'localhost';
+          FLUSH PRIVILEGES;
+
+    - name: Create database structure
+      shell: |
+        mysql -u root < /tmp/db1.sql
+        mysql -u root api2 < /tmp/web_api/api2/database/mysql.sql
+
+    - name: Compilando Vulnerable 02 - Step1
+      ignore_errors: false
+      shell: |
+        cd /tmp/web_api/api2/
+        mvn package
+        cp ./target/spring-boot-crud-training-0.0.1-SNAPSHOT.jar /home/apivul2/api2.jar
+      args:
+        warn: false
+
+    - name: Ajustando permissões
+      shell: |
+        chown -R apivul2:{{ nginx_user }} /home/apivul2/
+        chmod 777 /home/apivul2/api2.jar
+      args:
+        warn: false
+
+    - name: Creating a api2 config file
+      copy:
+        dest: "/etc/systemd/system/apivul2.service"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          [Unit]
+          Description=Vulnerable API 2 Service
+          After=network.target
+
+          [Service]
+          User = apivul2
+          Group = {{ nginx_user }}
+          WorkingDirectory=/home/apivul2/
+          Environment="PATH=/home/apivul2/api/:/usr/local/bin:/usr/bin"
+          ExecStart=/usr/bin/java -jar /home/apivul2/api2.jar
+          SuccessExitStatus=143
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Enable service Vulnerable API 2 Service and ensure it is not masked
+      ansible.builtin.systemd:
+        name: apivul2
+        enabled: yes
+        masked: no
+
+    - name: Restart API2 Service
+      service:
+        name: apivul2
+        state: restarted
+
+    - name: Creating a Nginx api2 config file
+      copy:
+        dest: "/etc/nginx/conf.d/apivul2.conf"
+        content: |
+          server {
+              #listen       80;
+              listen       443 ssl;
+              server_name  api2.webapiexploitation.com.br;
+              add_header x-stream be2;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+                  proxy_pass http://localhost:4002;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+
+              #error_page  404              /404.html;
+
+              # redirect server error pages to the static page /50x.html
+              #
+              error_page   500 502 503 504  /50x.html;
+              location = /50x.html {
+                  root   /usr/share/nginx/html;
+              }
+
+          }
+
+    - name: Reload nginx config
+      shell: |
+        nginx -s reload
+      args:
+        warn: false

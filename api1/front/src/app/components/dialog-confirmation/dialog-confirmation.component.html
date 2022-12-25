@@ -1,0 +1,26 @@
+<div class="container">
+  <h1>{{ title }}</h1>
+  <br />
+  <h3>{{ message }}</h3>
+  <br />
+
+  <div fxLayoutAlign="space-between">
+    <button
+      mat-dialog-close
+      cdkFocusInitial
+      mat-button
+      color="{{ secondaryButton.color }}"
+      type="button"
+    >
+      {{ secondaryButton.title }}
+    </button>
+    <button
+      (click)="onNoClick()"
+      mat-raised-button
+      color="{{ primaryButton.color }}"
+      type="button"
+    >
+      {{ primaryButton.title }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,81 @@
+<!DOCTYPE html><html lang="en"><head>
+<title>Sec4US - Bank</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" type="text/css" href="/static/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/icon-font.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/animate.css">
+<link rel="stylesheet" type="text/css" href="/static/css/hamburgers.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/select2.min.css">
+<link rel="stylesheet" type="text/css" href="/static/css/util.css">
+<link rel="stylesheet" type="text/css" href="/static/css/main.css">
+
+<meta property="og:image" content="/static/images/icon.png">
+<meta property="og:image:width" content="500">
+<meta property="og:image:height" content="500">
+
+<link rel="icon" href="/static/images/cropped-icon2-32x32.png" sizes="32x32">
+<link rel="icon" href="/static/images/cropped-icon2-192x192.png" sizes="192x192">
+
+</head>
+<body>
+<div class="limiter">
+<div class="container-login100">
+<div class="wrap-login100 p-l-50 p-r-50 p-t-77 p-b-30">
+<form method="POST" action="" class="login100-form validate-form" id="login">
+<span class="login100-form-title p-b-55">
+Login
+</span>
+{% if error %}
+<div class="text-center container-error">{{ error }}</div>
+{% endif %}
+<div class="wrap-input100 validate-input m-b-16" data-validate="Entre com um e-mail válido: ex@abc.xyz">
+<input class="input100" type="text" name="email" placeholder="Email">
+<span class="focus-input100"></span>
+<span class="symbol-input100">
+<span class="lnr lnr-envelope"></span>
+</span>
+</div>
+<div class="wrap-input100 validate-input m-b-16" data-validate="Digite a senha">
+<input class="input100" type="password" name="pass" placeholder="Senha">
+<span class="focus-input100"></span>
+<span class="symbol-input100">
+<span class="lnr lnr-lock"></span>
+</span>
+</div>
+<div class="container-login100-form-btn p-t-25">
+<button type="submit" form="login" class="login100-form-btn">
+Entrar
+</button>
+</div>
+<div class="text-center w-full p-t-42 p-b-22">
+<span class="txt1">
+Ou realize o login utilizando
+</span>
+</div>
+
+{% for p in providers %}
+<a href="{{ p.url }}" class="{{ p.aclass }} m-b-10">
+<i class="fa {{ p.iclass }}"></i>
+{{ p.name }}
+</a>
+{% endfor %}
+
+</form>
+</div>
+</div>
+</div>
+
+<script type="text/javascript" async src="/static/js/analytics.js"></script>
+<script src="/static/js/jquery-3.2.1.min.js"></script>
+
+<script src="/static/js/popper.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+<script src="/static/js/select2.min.js"></script>
+
+<script src="/static/js/main.js"></script>
+
+</body></html>

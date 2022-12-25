@@ -1,0 +1,278 @@
+---
+- hosts: all
+  become: yes
+  vars:
+      ansible_python_interpreter: /usr/bin/python3
+      burpsuite_channel: "Stable"
+      burpsuite_edition: "community"
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_tasks: 'user_details.yml'
+
+    - include_tasks: 'setup_burp.yml'
+
+    - name: Tools | Create directory home -> Resources
+      file:
+        path: /home/{{ local_username }}/Desktop/Resources
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Create directory home -> Resources -> Android
+      file:
+        path: /home/{{ local_username }}/Desktop/Resources/Android
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Create directory home -> Resources -> Android -> Frida
+      file:
+        path: /home/{{ local_username }}/Desktop/Resources/Android/Frida
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Create directory home -> Resources -> Java
+      file:
+        path: /home/{{ local_username }}/Desktop/Resources/Java
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Download Frida Server v15.0.13
+      get_url:
+        url: "{{ item.url }}"
+        dest: "/home/{{ local_username }}/Desktop/Resources/{{ item.name }}"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+      with_items:
+          - { name: "Android/Frida/frida-server-15.0.13-android-arm.xz", url: "https://github.com/frida/frida/releases/download/15.0.13/frida-server-15.0.13-android-arm.xz" }
+          - { name: "Android/Frida/frida-server-15.0.13-android-arm64.xz", url: "https://github.com/frida/frida/releases/download/15.0.13/frida-server-15.0.13-android-arm64.xz" }
+          - { name: "Android/Frida/frida-server-15.0.13-android-x86.xz", url: "https://github.com/frida/frida/releases/download/15.0.13/frida-server-15.0.13-android-x86.xz" }
+          - { name: "Android/Frida/frida-server-15.0.13-android-x86_64.xz", url: "https://github.com/frida/frida/releases/download/15.0.13/frida-server-15.0.13-android-x86_64.xz" }
+
+    - name: Tools | List downloads files
+      ansible.builtin.find:
+        paths: /home/{{ local_username }}/Desktop/Resources/Android/Frida
+        patterns: '*.xz'
+      register: frida_files
+
+    - name: Tools | Extract files
+      shell: xz -f -d "{{ item.path }}"
+      args:
+        chdir: /home/{{ local_username }}/Desktop/Resources/Android/Frida
+      loop: "{{ frida_files.files }}"
+
+    - name: Tools | Create directory home -> DeployPackage
+      file:
+        path: /home/{{ local_username }}/Desktop/DeployPackage
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Copy deploy files
+      copy:
+        src: "{{ item }}"
+        dest: /home/{{ local_username }}/Desktop/DeployPackage
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+      with_fileglob:
+        - ./*.yml
+
+    - name: Tools | Copy Training Files
+      copy:
+        src: web_api.zip
+        dest: /home/{{ local_username }}/Desktop/DeployPackage
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        force: yes
+
+    - name: Tools | Create directory /tmp/web_api/
+      file:
+        path: /tmp/web_api/
+        state: directory
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0775
+
+    - name: Tools | Extract Training files
+      unarchive:
+        src: /home/{{ local_username }}/Desktop/DeployPackage/web_api.zip
+        dest: /tmp/web_api/
+        remote_src: yes
+
+    - name: Tools | Copy a user deploy.sh
+      copy:
+        src: deploy.sh
+        dest: /home/{{ local_username }}/Desktop/DeployPackage/
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0644
+        force: yes
+
+    - name: Tools | Copy a user README
+      copy:
+        src: README.md
+        dest: /home/{{ local_username }}/Desktop/DeployPackage/
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0644
+        force: yes
+
+    - name: Tools | Install turbosearch
+      ansible.builtin.pip:
+        executable: pip3
+        state: forcereinstall
+        name: git+https://github.com/helviojunior/turbosearch.git#egg=turbosearch
+      become: yes
+
+    - name: Tools | Download/Install sublime
+      shell: wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -; echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
+      ignore_errors: yes
+      become: yes
+
+    - name: Tools | Download/Install sublime
+      apt:
+        name: sublime-text
+        state: present
+        update_cache: yes
+      ignore_errors: yes
+      become: yes
+
+    - name: Tools | Moving Desktop files
+      shell: cd /tmp/web_api; rsync -av desktop/* /home/{{ local_username }}/Desktop/
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+
+    - name: Tools | Adjusting permissions
+      shell: chown -R {{ local_username }}:{{ local_username }} /home/{{ local_username }}/Desktop/
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+
+    - name: Tools | Postman
+      shell: snap install postman
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+
+    - name: Tools | Remove Frida client
+      ansible.builtin.pip:
+        state: absent
+        executable: pip3
+        name:
+          - frida
+          - frida-tools
+
+    - name: Tools | Install Frida client
+      ansible.builtin.pip:
+        executable: pip3
+        name:
+          - frida==15.1.17
+          - frida-tools==10.8.0
+
+    - name: Tools | Adjusting permissions
+      shell: chown -R {{ local_username }}:{{ local_username }} /home/{{ local_username }}/Desktop/
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+
+
+    - name: Tools | Check if exists Enjarify
+      stat:
+        path: "/opt/enjarify/enjarify.sh"
+      register: enjarify_stats
+
+    - name: Tools | Enjarify
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+      shell: |
+        git clone https://github.com/Storyyeller/enjarify.git /opt/enjarify
+        chmod 777 /opt/enjarify/enjarify.sh
+        ln -s /opt/enjarify/enjarify.sh /bin/enjarify
+      when: not enjarify_stats.stat.exists
+
+    - name: Tools | Check if exists ysoserial
+      stat:
+        path: "/opt/ysoserial/ysoserial.sh"
+      register: ysoserial_stats
+
+    - name: Tools | ysoserial
+      ignore_errors: false
+      become: yes
+      args:
+        warn: false
+      shell: |
+        mkdir -p /opt/ysoserial
+        wget https://jitpack.io/com/github/frohoff/ysoserial/master-SNAPSHOT/ysoserial-master-SNAPSHOT.jar -O /opt/ysoserial/ysoserial.jar
+
+        cat << EOF > /opt/ysoserial/ysoserial.sh
+        #!/bin/bash
+        java -jar /opt/ysoserial/ysoserial.jar \$@
+        EOF
+
+        chmod 777 /opt/ysoserial/ysoserial.sh
+        ln -s /opt/ysoserial/ysoserial.sh /bin/ysoserial
+        cp /opt/ysoserial/ysoserial.sh /home/{{ local_username }}/Desktop/Resources/Java/
+        cp /opt/ysoserial/ysoserial.jar /home/{{ local_username }}/Desktop/Resources/Java/
+      when: not ysoserial_stats.stat.exists
+
+    - name: Tools | Create directory JD-GUI
+      file:
+        path: /opt/jd-gui
+        state: directory
+        owner: "root"
+        group: "root"
+        mode: 0777
+
+    - name: Tools | Check if JD-GUI is installed
+      stat:
+        path: "/usr/share/applications/jd-gui.desktop"
+      register: jdgui_check
+
+    - name: Tools | Download JD-GUI
+      get_url:
+        url: "https://github.com/java-decompiler/jd-gui/releases/download/v1.6.6/jd-gui-1.6.6.jar"
+        dest: "/opt/jd-gui/jd-gui.jar"
+      when: not jdgui_check.stat.exists
+
+    - name: Tools | Download JD-GUI ICON
+      get_url:
+        url: "https://github.com/java-decompiler/jd-gui/raw/master/src/linux/resources/jd_icon_128.png"
+        dest: "/opt/jd-gui/jd-gui.png"
+      when: not jdgui_check.stat.exists
+
+    - name: Base | Configuring JD-GUI
+      copy:
+        dest: "/usr/share/applications/jd-gui.desktop"
+        owner: root
+        group: root
+        mode: 0666
+        force: yes
+        content: |
+          [Desktop Entry]
+          Comment=Java Decompiler JD-GUI
+          Terminal=false
+          Name=JD-GUI
+          Exec=java -jar /opt/jd-gui/jd-gui.jar
+          Type=Application
+          Icon=/opt/jd-gui/jd-gui.png
+          MimeType=application/java;application/java-vm;application/java-archive
+          StartupWMClass=org-jd-gui-App
+      when: not jdgui_check.stat.exists
+
+    - include_tasks: 'setup_burp.yml'

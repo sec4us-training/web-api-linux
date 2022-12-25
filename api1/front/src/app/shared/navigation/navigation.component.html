@@ -1,0 +1,35 @@
+<mat-drawer-container>
+  <mat-drawer mode="side" opened>
+    <div fxLayout="column" class="header">
+      <h1>Bem vindo, <br /> {{ name }}</h1>
+      <div fxLayout="row">
+        <h4>{{ viewRole }}</h4>
+      </div>
+    </div>
+    <div fxLayout="column" class="navigation-buttons">
+      <div
+        routerLink="/my-data"
+        routerLinkActive="active"
+        fxLayout="row"
+        fxLayoutAlign="start center"
+      >
+        <mat-icon>assignment_ind</mat-icon>
+        <span>Meus dados</span>
+      </div>
+
+      <div
+        *ngIf="role === 'admin'"
+        fxLayout="row"
+        fxLayoutAlign="start center"
+        routerLink="/users"
+        routerLinkActive="active"
+      >
+        <mat-icon>account_circle</mat-icon>
+        <span>Usuários</span>
+      </div>
+    </div>
+  </mat-drawer>
+  <mat-drawer-content>
+    <router-outlet></router-outlet>
+  </mat-drawer-content>
+</mat-drawer-container>

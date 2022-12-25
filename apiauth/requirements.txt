@@ -1,0 +1,13 @@
+Flask
+Flask-RESTful
+pyotp
+uWSGI
+requests
+mysqlclient
+PyJWT
+xmltodict
+lxml
+Flask-SQLAlchemy
+setuptools
+setuptools-rust
+wheel

@@ -1,0 +1,321 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_vars: 'vars.yml'
+    - include_tasks: 'user_details.yml'
+
+    - name: RDP | Install Xfce4 desktop
+      apt:
+        update_cache: yes
+        install_recommends: no
+        name:
+          - xubuntu-desktop
+          - xfce4-terminal
+          - xfce4-session
+          - xfce4-goodies
+          - xorg
+          - xrdp
+          - xorgxrdp
+          - plank
+
+    - name: RDP | Enable and start xrdp
+      shell: systemctl enable xrdp --now
+      ignore_errors: yes
+      become: yes
+
+    - name: RDP | Change port
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: port
+        value: "48389"
+
+    - name: RDP | Change new_cursors
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: new_cursors
+        value: "false"
+
+    - name: RDP | Change max_bpp
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: max_bpp
+        value: "16"
+
+    - name: RDP | Change crypt_level
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: crypt_level
+        value: "medium"
+
+    - name: RDP | Change security_layer
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: security_layer
+        value: "negotiate"
+
+    - name: RDP | Change tcp_keepalive
+      community.general.ini_file:
+        path: /etc/xrdp/xrdp.ini
+        section: Globals
+        option: tcp_keepalive
+        value: "true"
+
+    - name: RDP | Defining home -> .xsession
+      copy:
+        dest: "/home/{{ local_username }}/.xsession"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          xfce4-session
+
+    - name: RDP | Defining home -> .xsessionrc
+      copy:
+        dest: "/home/{{ local_username }}/.xsessionrc"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          export XDG_SESSION_DESKTOP=xubuntu
+          export XDG_DATA_DIRS=/usr/share/xfce4:/usr/share/xubuntu:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
+          export XDG_CONFIG_DIRS=/etc/xdg/xdg-xubuntu:/etc/xdg:/etc/xdg
+
+    - name: Tools | Check /usr/bin/light-locker
+      stat:
+        path: "/usr/bin/light-locker"
+        checksum_algorithm: sha1
+        get_checksum: yes
+      register: ld_check
+
+    - name: RDP | Defining tem /usr/bin/light-locker
+      copy:
+        dest: "/tmp/light-locker"
+        owner: "root"
+        group: "root"
+        mode: 0755
+        force: yes
+        content: |
+          #!/bin/sh
+
+          # The light-locker uses XDG_SESSION_PATH provided by lightdm.
+          if [ ! -z "${XDG_SESSION_PATH}" ]; then
+            /usr/bin/light-locker.orig
+          else
+            # Disable light-locker in XRDP.
+            true
+          fi
+
+    - name: RDP | Calculate temp /usr/bin/light-locker checksum
+      stat:
+        path: "/tmp/light-locker"
+        checksum_algorithm: sha1
+        get_checksum: yes
+      register: ld_tmp_check
+
+    - name: RDP | Moving original /usr/bin/light-locker
+      shell: |
+        mv /usr/bin/light-locker /usr/bin/light-locker.orig
+      when: ld_check.stat.exists and ld_check.stat.checksum != ld_tmp_check.stat.checksum
+
+    - name: RDP | Moving /usr/bin/light-locker
+      shell: |
+        mv /tmp/light-locker /usr/bin/light-locker
+      when: not ld_check.stat.exists or ld_check.stat.checksum != ld_tmp_check.stat.checksum
+
+    - name: RDP | Restart xrdp service
+      service:
+        name: xrdp
+        state: restarted
+
+    - name: RDP | Stop and disable firewalld.
+      service:
+        name: firewalld
+        state: stopped
+        enabled: False
+      ignore_errors: yes
+
+    - name: RDP | Check wallpapers folder
+      stat:
+        path: "/tmp/web_api/wallpaper/"
+      register: wallpaper_check
+
+    - name: RDP | Changing backgrounds
+      shell: |
+        rm -rf /usr/share/backgrounds/xfce/*
+        rsync -av /tmp/web_api/wallpaper/* /usr/share/backgrounds/xfce/
+      ignore_errors: yes
+      when: wallpaper_check.stat.exists
+
+    - name: RDP | Check plank folder
+      stat:
+        path: "/tmp/web_api/plank_theme/"
+      register: plank_check
+
+    - name: RDP | Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "/home/{{ local_username }}/.local/share/plank/theme/"
+        state: directory
+        mode: '0755'
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+
+    - name: RDP | Changing dock theme
+      shell: |
+        rm -rf /home/{{ local_username }}/.local/share/plank/theme/*
+        rsync -av /tmp/web_api/plank_theme/* /home/{{ local_username }}/.local/share/plank/theme/
+      when: plank_check.stat.exists
+
+    - name: RDP | Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "/home/{{ local_username }}/.config/autostart"
+        state: directory
+        mode: '0755'
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+
+    - name: RDP | Plank autostart
+      copy:
+        dest: "/home/{{ local_username }}/.config/autostart/plank.desktop"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [Desktop Entry]
+          Type=Application
+          Exec=plank -n 2
+          Hidden=false
+          NoDisplay=false
+          X-GNOME-Autostart-enabled=true
+          Name=Plank
+
+    - name: RDP | Desktop Background script
+      copy:
+        dest: "/usr/bin/change_background"
+        owner: "root"
+        group: "root"
+        mode: 0555
+        force: yes
+        content: |
+          #!/bin/bash
+          img_file=$(find /usr/share/backgrounds/xfce/ -type f | head -n 1)
+          xfconf-query -c xfce4-desktop -l | grep last-image | while read path; do xfconf-query -c xfce4-desktop -p $path -s "$img_file"; done
+
+    - name: RDP | Desktop Background autostart
+      copy:
+        dest: "/home/{{ local_username }}/.config/autostart/background.desktop"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [Desktop Entry]
+          Type=Application
+          Exec=/usr/bin/change_background
+          Hidden=false
+          NoDisplay=false
+          X-GNOME-Autostart-enabled=true
+          Name=background
+
+
+    - name: RDP | Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "/home/{{ local_username }}/.config/plank/2/launchers/"
+        state: directory
+        mode: '0755'
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+
+    - name: RDP | Plank icone -> firefox
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/firefox_firefox.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file:///var/lib/snapd/desktop/applications/firefox_firefox.desktop
+
+    - name: RDP | Plank icone -> JD-GUI
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/jd-gui.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file:///usr/share/applications/jd-gui.desktop
+
+    - name: RDP | Plank icone -> firefox
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/sublime_text.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file:///usr/share/applications/sublime_text.desktop
+
+    - name: RDP | Plank icone -> terminator
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/terminator.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file:///usr/share/applications/terminator.desktop
+
+    - name: RDP | Plank icone -> postman
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/postman.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file:///var/lib/snapd/desktop/applications/postman_postman.desktop
+
+    - name: RDP | Getting Burp desktop file path
+      ignore_errors: yes
+      shell: |
+        find / -iname "*burp*.desktop" 2>/dev/null | grep -v "install" | head -n 1
+      register: burp_output
+
+    - name: RDP | Setting Burp desktop file path
+      set_fact:
+        burp_desktop_path: "{{ burp_output.stdout }}"
+
+    - name: RDP | Burp desktop file path
+      debug:
+        msg: "Burp desktop file path is {{ burp_desktop_path }}"
+
+    - name: RDP | Plank icone -> Burp
+      copy:
+        dest: "/home/{{ local_username }}/.config/plank/2/launchers/burp.dockitem"
+        owner: "{{ local_username }}"
+        group: "{{ user_details.group }}"
+        mode: 0774
+        force: yes
+        content: |
+          [PlankDockItemPreferences]
+          Launcher=file://{{ burp_desktop_path }}

@@ -1,0 +1,151 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - include_tasks: 'user_details.yml'
+
+    - name: Getting NGINX user
+      ignore_errors: yes
+      shell: |
+        cat /etc/nginx/nginx.conf | grep -E '\buser\b' | sed 's/user//g;s/\;//g' | tr -d ' '
+      register: nginx_output
+
+    - name: Setting NGINX user
+      set_fact:
+        nginx_user: "{{ nginx_output.stdout }}"
+
+    - name: Nginx user
+      debug:
+        msg: "Nginx user is {{ nginx_user }}"
+
+
+    - name: Adding local user
+      user:
+        name: apiauth
+        groups: "{{ nginx_user }}"
+        append: yes
+        state: present
+        createhome: yes
+        shell: /bin/bash
+
+
+    #- name: Adding local user
+    #  ignore_errors: yes
+    #  shell: |
+    #    adduser --disabled-password --ingroup {{ nginx_user }} --gecos "" apiauth
+
+    - name: Coping files
+      ignore_errors: yes
+      shell: |
+        mkdir -p /home/apiauth/api
+        rsync -av /tmp/web_api/apiauth/src/* /home/apiauth/api/
+        rsync -av /tmp/web_api/apiauth/requirements.txt /home/apiauth/
+        chown -R apiauth:{{ nginx_user }} /home/apiauth/
+
+    - name: Creating a Nginx API Auth config file
+      copy:
+        dest: "/etc/nginx/conf.d/apiauth.conf"
+        content: |
+          server {
+              #listen      80;
+              listen       443 ssl;
+              server_name auth.webapiexploitation.com.br;
+
+              ssl_certificate      /etc/nginx/certs/webapiexploitation.com.br.cer;
+              ssl_certificate_key  /etc/nginx/certs/webapiexploitation.com.br.key;
+
+              location / {
+                  return 301 /v1/;
+              }
+
+              location /v1/ {
+
+                  uwsgi_param   Host                 $host;
+                  uwsgi_param   X-Real-IP            $remote_addr;
+                  uwsgi_param   X-Forwarded-For      $proxy_add_x_forwarded_for;
+                  uwsgi_param   X-Forwarded-Proto    $http_x_forwarded_proto;
+
+                  proxy_read_timeout 600;
+                  proxy_connect_timeout 1d;
+                  proxy_max_temp_file_size 5024m;
+                  proxy_send_timeout 600;
+                  uwsgi_read_timeout 600;
+                  uwsgi_send_timeout 600;
+                  include uwsgi_params;
+                  uwsgi_pass unix:/tmp/apiauth.sock;
+
+              }
+
+
+
+          }
+
+    - name: Install Python environment
+      shell: |
+        cat << EOF > /tmp/instala.sh
+        cd ~
+        python3.8 -m venv api
+        source api/bin/activate
+        pip install -U pip
+        pip install django wheel uWSGI
+        pip install -r requirements.txt
+        EOF
+
+        chmod 777 /tmp/instala.sh
+
+        sudo -u apiauth bash -c "/tmp/instala.sh"
+      args:
+        warn: false
+
+    - name: Creating a Nginx API Auth config file
+      copy:
+        dest: "/home/apiauth/api/authapi/config.ini"
+        content: |
+          [GENERAL]
+          debug=True
+
+    - name: Creating a Nginx api2 config file
+      copy:
+        dest: "/etc/systemd/system/apiauth.service"
+        owner: root
+        group: root
+        mode: 0644
+        force: yes
+        content: |
+          [Unit]
+          Description=Sec4US Auth API Service
+          After=network.target
+
+          [Service]
+          User = apiauth
+          Group = {{ nginx_user }}
+          WorkingDirectory=/home/apiauth/api/
+          Environment="PATH=/home/apiauth/api/bin"
+          ExecStart=/home/apiauth/api/bin/uwsgi --socket /tmp/apiauth.sock --chmod-socket=666 -w wsgi:app --processes=2  --threads=10 --reload-mercy=1 --worker-reload-mercy=1 --req-logger file:/dev/nul --touch-reload /home/apiauth/api/authapi/config.py
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Enable service apiauth and ensure it is not masked
+      ansible.builtin.systemd:
+        name: apiauth
+        enabled: yes
+        masked: no
+
+    - name: Restart Service
+      service:
+        name: apiauth
+        state: restarted
+
+    - name: Reload nginx config
+      shell: |
+        nginx -s reload
+      args:
+        warn: false

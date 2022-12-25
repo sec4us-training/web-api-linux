@@ -1,0 +1,57 @@
+- name: Node.JS | Adding signing key
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+
+- name: Node.JS | Install the nodejs LTS repos
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_facts['lsb']['codename'] }} main"
+    state: present
+    update_cache: yes
+
+- name: Node.JS | Updating apt cache
+  apt:
+    update_cache: yes
+
+- name: Node.JS | Installing
+  apt:
+    pkg:
+      - nodejs
+    state: latest
+
+- name: Node.JS | Install "npm" node.js package globally
+  npm:
+    name: npm
+    global: yes
+
+
+- name: Node.JS | Install "pm2" node.js package globally
+  npm:
+    name: pm2
+    global: yes
+
+- name: Node.JS | Install "@angular/cli" node.js package globally
+  npm:
+    name: "@angular/cli"
+    global: yes
+
+- name: Node.JS | Install "apidoc" node.js package globally
+  npm:
+    name: apidoc
+    global: yes
+
+- name: Node.JS | Install "qrcode" node.js package globally
+  npm:
+    name: qrcode
+    global: yes
+
+- name: Node.JS | Install "@aws-sdk/client-s3" node.js package globally
+  npm:
+    name: "@aws-sdk/client-s3"
+    global: yes
+
+- name: Node.JS | Install "@angular-devkit/build-angular" node.js package globally
+  npm:
+    name: "@angular-devkit/build-angular"
+    global: yes
+

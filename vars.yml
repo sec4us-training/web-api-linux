@@ -1,0 +1,4 @@
+default_username: "ubuntu"
+default_password: "sec4uswebapi"
+user_text: ""
+local_username: webapi
