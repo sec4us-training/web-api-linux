@@ -8,7 +8,7 @@ Todos os direitos reservados. Nenhuma parte dos materiais disponibilizadas, incl
 
 Este é um procedimento que realiza a configuração completa de um servidor Linux para as práticas de testes de invasão (Pentest) realizados durante o treinamento de Web API Exploitation da Sec4US.
 
-Conheça mais sobre nosso treinamento em: https://sec4us.com.br/treinamentos/active-directory-exploitation/
+Conheça mais sobre nosso treinamento em: https://sec4us.com.br/treinamentos/web-api-exploitation/
 
 ## Ambiente
 
