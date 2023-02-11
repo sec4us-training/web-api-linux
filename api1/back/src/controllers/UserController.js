@@ -212,6 +212,19 @@ exports.verifyEmail = async (request, response) => {
  *     }
  */
 exports.authenticate = async (request, response) => {
+  const contract = new ValidationContract();
+
+  contract.isEmail(request.body.email, 'E-mail inválido', '');
+  contract.isRequired(request.body.password, 'O campo senha é obrigatório', '');
+
+  // Se os dados forem inválidos
+  if (!contract.isValid()) {
+    response.status(400).send(
+      contract.firstError()
+    );
+    return;
+  }
+  
   const { email, password } = request.body
 
   const passwordMd5 = md5(password + global.SALT_KEY)
