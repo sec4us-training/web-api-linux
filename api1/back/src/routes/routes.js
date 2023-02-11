@@ -26,7 +26,7 @@ const router = express.Router()
 
 router.get(config.basePath + '', general)
 router.get(config.basePath + 'jwtinfo', jwtInfo)
-router.get(config.basePath + 'users', generalUsers)
+//router.get(config.basePath + 'users', generalUsers)
 router.post(config.basePath + 'users/create', createUser)
 router.get(config.basePath + 'users/list', getUsers)
 router.post(config.basePath + 'users/authenticate', authenticate)
