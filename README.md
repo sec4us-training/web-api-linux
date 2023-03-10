@@ -39,6 +39,23 @@ ansible-galaxy collection install ansible.windows
 ansible-galaxy collection install community.windows
 ```
 
+## Meus Ajustes
+```bash
+edred@legion:/mnt/c/Users/edgar/web-api-linux$ vagrant ssh-config
+Host default
+  HostName 172.30.80.1
+  User vagrant
+  Port 2222
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /mnt/c/Users/edgar/web-api-linux/.vagrant/machines/default/virtualbox/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+
+ssh -i /mnt/c/Users/<USER>/web-api-linux/.vagrant/machines/default/virtualbox/private_key -l vagrant 172.30.80.1 -p 2222
+```
+
 ## Preparação do servidor
 
 ### Chaves SSH

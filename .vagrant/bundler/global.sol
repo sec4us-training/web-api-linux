@@ -1,0 +1,1 @@
+{"dependencies":[["vagrant-auto_network",["= 1.0.3"]],["log4r",[">= 0"]],["concurrent-ruby",["~> 1.0"]],["i18n",[">= 0"]],["micromachine",[">= 2","< 4"]],["vagrant-vbguest",["= 0.31.0"]],["vagrant-vmware-desktop",["= 3.0.1"]],["rake",[">= 0"]],["virtualbox_WSL2",["= 0.1.3"]]],"checksum":"cf1c16f7a96ef4c69d3230ddf9ea6fa6b8d069baf8f193d2ddb261b937812d2f","vagrant_version":"2.3.4"}
