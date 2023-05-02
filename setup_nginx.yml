@@ -76,8 +76,6 @@
 - name: NGINX | Removing default NGINX configs
   shell: |
     rm -rf /etc/nginx/conf.d/*
-  args:
-    warn: false
 
 - name: NGINX | Restarting Nginx
   service:
@@ -91,6 +89,5 @@
     openssl req -x509 -subj '/CN=*.webapiexploitation.com.br' -newkey rsa:4096 -passout pass:123456 -keyout key.pem -out cert.pem -sha256 -days 100
     openssl rsa -in key.pem -passin pass:123456 -out /etc/nginx/certs/webapiexploitation.com.br.key
     cp cert.pem /etc/nginx/certs/webapiexploitation.com.br.cer
-  args:
-    warn: false
+
 

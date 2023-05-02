@@ -48,8 +48,6 @@
         mkdir -p /u01/www/apivul/
         mkdir -p /u01/apivul/
         rsync -av /tmp/web_api/api1/back/* /u01/apivul/
-      args:
-        warn: false
 
     # o comando ng build gera alguns wargings e o ansible identifica como se fosse erro
     # então estamos ignorando o erro e verificando no proximo passo se a compilacao ocorreu com sucesso
@@ -61,16 +59,12 @@
         rm -rf ./dist/front/
         ng config -g cli.warnings.versionMismatch false
         ng build
-      args:
-        warn: false
 
     - name: Compilando Frontend - Step2
       shell: |
         test -e /tmp/web_api/api1/front/dist/front/main.js # vai apresentar erro se não existir
         cd /tmp/web_api/api1/front/
         rsync -av ./dist/front/* /u01/www/apivul/
-      args:
-        warn: false
 
     - name: Creating a .env.example file
       copy:
@@ -160,8 +154,6 @@
       shell: |
         chown -R apivul:{{ nginx_user }} /u01/www/apivul/
         chown -R apivul:{{ nginx_user }} /u01/apivul/
-      args:
-        warn: false
 
     - name: Create PM2 data structure
       shell: |
@@ -185,14 +177,10 @@
       shell: |
         chmod +x /tmp/exec1.sh
         sudo -u apivul bash -c "/tmp/exec1.sh"
-      args:
-        warn: false
 
     - name: Restart PM2
       shell: |
         sudo -u apivul bash -c "cd ~; pm2 restart api"
-      args:
-        warn: false
 
     - name: Creating a Nginx api1 config file
       copy:
@@ -235,5 +223,4 @@
     - name: Reload nginx config
       shell: |
         nginx -s reload
-      args:
-        warn: false
+

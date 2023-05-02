@@ -74,15 +74,11 @@
         cd /tmp/web_api/api2/
         mvn package
         cp ./target/spring-boot-crud-training-0.0.1-SNAPSHOT.jar /home/apivul2/api2.jar
-      args:
-        warn: false
 
     - name: Ajustando permissões
       shell: |
         chown -R apivul2:{{ nginx_user }} /home/apivul2/
         chmod 777 /home/apivul2/api2.jar
-      args:
-        warn: false
 
     - name: Creating a api2 config file
       copy:
@@ -158,5 +154,4 @@
     - name: Reload nginx config
       shell: |
         nginx -s reload
-      args:
-        warn: false
+

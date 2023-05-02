@@ -22,8 +22,7 @@
         echo "127.0.0.1    facebuquison.webapiexploitation.com.br" >> /etc/hosts
         echo "127.0.0.1    cathub.webapiexploitation.com.br" >> /etc/hosts
         echo "127.0.0.1    $(hostname)" >> /etc/hosts
-      args:
-        warn: false
+
 
     - name: Base | Make sure we have a 'sec4us' group
       group:
@@ -138,6 +137,10 @@
         - hashcat
         - jq
         - sqlmap
+        - default-jre 
+        - default-jdk 
+        - libmagic-dev 
+        - git
 
     - name: Base | Change default user password
       shell: echo {{ local_username }}:{{ default_password }} | chpasswd

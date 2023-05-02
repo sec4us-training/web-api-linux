@@ -97,8 +97,6 @@
         chmod 777 /tmp/instala.sh
 
         sudo -u apiauth bash -c "/tmp/instala.sh"
-      args:
-        warn: false
 
     - name: Creating a Nginx API Auth config file
       copy:
@@ -147,5 +145,4 @@
     - name: Reload nginx config
       shell: |
         nginx -s reload
-      args:
-        warn: false
+
