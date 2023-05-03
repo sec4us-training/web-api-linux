@@ -3,7 +3,7 @@
 
 usage()
 {
-    echo "usage: sudo wget -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | bash"
+    echo "usage: wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sudo bash"
 }
 
 

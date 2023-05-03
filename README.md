@@ -34,7 +34,7 @@ apt install wget
 #### Deploy
 
 ```bash
-sudo wget -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sh
+wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sudo bash
 ```
 
 **Nota:** o script deploy.sh irá executar todos o processo de deploy dos arquivos .yml, sendo assim NÃO precisa executar manualmente cada um deles.
