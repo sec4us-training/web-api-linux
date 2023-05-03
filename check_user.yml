@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: yes
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: get root user info
+      getent:
+        database: passwd
+        key: root
+
+

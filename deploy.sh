@@ -123,28 +123,6 @@ else
     echo -e "${OK} ${G}OK${W}"
 fi
 
-echo -e "\n${OK} Verificando conectividade com o IP ${O}${ip}${W}"
-chmod 400 "$SSH_FILE" 1>/dev/null 2>&1
-check1=$(ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i $SSH_FILE $ansible_user@$ip "whoami")
-if [ "$ansible_user" != "$check1" ]; then
-    echo -e "\n${ERROR} ${O}Falha autenticando remotamente com o usuário ${C}${ansible_user}${O} em ${C}${ip}${O}!${W}\n"
-    exit 1
-else
-    echo -e "${OK} ${G}OK${W}"
-fi
-
-echo -e "\n${OK} Verificando permissões de acesso do usuário"
-check2=$(ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no -i $SSH_FILE $ansible_user@$ip "whoami")
-if [ "$check2" != "root" ]; then
-    check2=$(ssh -o StrictHostKeyChecking=no -i $SSH_FILE $ansible_user@$ip "sudo whoami")
-    if [ "$check2" != "root" ]; then
-        echo -e "\n${ERROR} ${O}Usuário ${C}${ansible_user} ${O}não tem permissão para executar comandos como root!${W}\n"
-        exit 1
-    fi
-else
-    echo -e "${OK} ${G}OK${W}"
-fi
-
 # remove a linha ansible_user do vars.yml
 cp vars.yml vars_old.yml
 grep -i -v "ansible_user" vars_old.yml > vars.yml
@@ -159,6 +137,15 @@ else
 fi
 
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+
+# Check conectivity and if user has root privileges
+echo -e "\n${OK} Verificando usuário"
+ansible-playbook -vvv -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' check_user.yml
+if [ "$?" != "0" ]; then
+    echo -e "${ERROR} ${O} Erro verificando usuário${W}\n"
+    exit 1
+fi
 
 # Step 1 - base
 echo -e "\n${OK} Executando passo 1 - setup_base.yml"
