@@ -3,7 +3,7 @@
 
 usage()
 {
-    echo "usage: deploy.sh -u [username] -k [ssh_key_file] -t [ip_address]"
+    echo "usage: sudo wget -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | bash"
 }
 
 
@@ -45,7 +45,6 @@ echo -e "\n${OK} Atualizando servidor"
 
 apt update && apt -y upgrade
 apt install -y ansible openssh-client openssh-server
-
 
 echo -e "\n${OK} Configurando SSH"
 systemctl enable ssh
