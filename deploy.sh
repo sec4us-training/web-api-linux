@@ -25,6 +25,7 @@ DEBUG=$(echo -e "${D}[${W}${B}*${W}${D}]${W}")
 unset ansible_user
 unset key
 unset ip
+unset status_file
 
 echo "IF9fX19fICAgICAgICAgICAgIF9fXyBfICAgXyBfX19fXwovICBfX198ICAgICAgICAgICAvICAgfCB8IHwgLyAgX19ffApcIGAtLS4gIF9fXyAgX19fIC8gL3wgfCB8IHwgXCBgLS0uCiBgLS0uIFwvIF8gXC8gX18vIC9ffCB8IHwgfCB8YC0tLiBcCi9cX18vIC8gIF9fLyAoX19cX19fICB8IHxffCAvXF9fLyAvClxfX19fLyBcX19ffFxfX198ICAgfF8vXF9fXy9cX19fXy8K" | base64 -d
 echo " "
@@ -34,6 +35,7 @@ echo " "
 echo "Copyright © Sec4US® - Todos os direitos reservados. Nenhuma parte dos materiais disponibilizadas, incluindo este script, servidor, suas aplicações e seu código fonte, podem ser copiadas, publicadas, compartilhadas, redistribuídas, sublicenciadas, transmitidas, alteradas, comercializadas ou utilizadas para trabalhos sem a autorização por escrito da Sec4US"
 
 if [ "$(id -u)" -ne 0 ]; then 
+  usage
   echo -e "\n${ERROR} ${O}Execute este script como root${W}\n"
   exit 1; 
 fi
@@ -44,7 +46,7 @@ status_file=$(pwd)/executed.txt
 echo -e "\n${OK} Atualizando servidor"
 
 apt update && apt -y upgrade
-apt install -y ansible openssh-client openssh-server
+apt install -y ansible openssh-client openssh-server git wget vim zip unzip
 
 echo -e "\n${OK} Configurando SSH"
 systemctl enable ssh
