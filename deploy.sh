@@ -6,6 +6,15 @@ usage()
     echo "usage: wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sudo bash"
 }
 
+info()
+{
+    whoami
+    uname -a
+    cat /etc/lsb-release
+    lsb_release -a
+    ip addr show
+}
+
 
 W='\033[0m'  # white (normal)
 R='\033[31m' # red
@@ -37,6 +46,7 @@ echo "Copyright © Sec4US® - Todos os direitos reservados. Nenhuma parte dos ma
 if [ "$(id -u)" -ne 0 ]; then 
   usage
   echo -e "\n${ERROR} ${O}Execute este script como root${W}\n"
+  info
   exit 1; 
 fi
 
@@ -73,6 +83,7 @@ SSH_FILE=$key
 # Verifica se o arquivo da chave SSH existe
 if [ ! -f "$SSH_FILE" ]; then
     echo -e "${ERROR} ${O}Arquivo de chave privada do SSH inexistente: ${C}${SSH_FILE}${W}\n"
+    info
     exit 1
 fi
 
@@ -80,6 +91,7 @@ SSH_FILE_PUB="$key.pub"
 # Verifica se o arquivo da chave SSH existe
 if [ ! -f "$SSH_FILE_PUB" ]; then
     echo -e "${ERROR} ${O}Arquivo de chave pública do SSH inexistente: ${C}${SSH_FILE_PUB}${W}\n"
+    info
     exit 1
 fi
 
@@ -109,6 +121,7 @@ if [ "W$ansible_path" = "W" ]; then
   echo "ansible-galaxy collection install ansible.windows"
   echo "ansible-galaxy collection install community.windows"
   echo " "
+  info
   exit 1
 fi
 
@@ -133,6 +146,7 @@ echo -e "\n${OK} Verificando senha padrão no arquivo vars.yml"
 password=$(cat vars.yml | grep default_password | cut -d '"' -f2)
 if [ "$?" -ne "0" ] || [ "W$password" = "W" ]; then
   echo -e "\n${ERROR} ${O}Senha do usuário ${C}webapi ${O}não definida no parâmetro ${C}'default_password' ${O}do arquivo vars.yml${W}\n"
+  info
   exit 1
 else
     echo -e "${OK} ${G}OK${W}"
@@ -146,6 +160,7 @@ echo -e "\n${OK} Verificando usuário"
 ansible-playbook -vvv -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' check_user.yml
 if [ "$?" != "0" ]; then
     echo -e "${ERROR} ${O} Erro verificando usuário${W}\n"
+    info
     exit 1
 fi
 
@@ -158,6 +173,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_base.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible setup base${W}\n"
+        info
         exit 1
     fi
     echo "step1_base" >> "$status_file"
@@ -173,6 +189,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_tools.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible tools${W}\n"
+        info
         exit 1
     fi
     echo "step2_tools" >> "$status_file"
@@ -188,6 +205,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_api1.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible API1 setup${W}\n"
+        info
         exit 1
     fi
     echo "step3_api1" >> "$status_file"
@@ -204,6 +222,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_api2.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible API2 setup${W}\n"
+        info
         exit 1
     fi
     echo "step4_api2" >> "$status_file"
@@ -219,6 +238,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_apiauth.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible API Auth setup${W}\n"
+        info
         exit 1
     fi
     echo "step5_apiauth" >> "$status_file"
@@ -234,6 +254,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_bank.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible Bank setup${W}\n"
+        info
         exit 1
     fi
     echo "step6_bank" >> "$status_file"
@@ -250,6 +271,7 @@ else
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_rdp.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible RDP setup${W}\n"
+        info
         exit 1
     fi
     echo "step7_rdp" >> "$status_file"
