@@ -82,7 +82,7 @@ if [ ! -f "$SSH_FILE_PUB" ]; then
 fi
 
 echo -e "\n${OK} Realizando o download dos scripts"
-git clone https://github.com/sec4us-training/web-api-linux.git /tmp/
+git clone https://github.com/sec4us-training/web-api-linux.git /tmp/web-api-linux
 pushd /tmp/web-api-linux
 
 cp -f $SSH_FILE ssh_key.pem
