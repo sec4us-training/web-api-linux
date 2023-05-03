@@ -57,7 +57,7 @@ status_file=$(pwd)/executed.txt
 echo -e "\n${OK} Atualizando servidor"
 
 apt update && apt -y upgrade
-apt install -y ansible openssh-client openssh-server git wget vim zip unzip
+apt install -y ansible openssh-client openssh-server git wget vim zip unzip python3 python3-pip
 
 echo -e "\n${OK} Configurando SSH"
 systemctl enable ssh
@@ -73,7 +73,7 @@ fi
 PYTHON3="/usr/bin/python3"
 
 echo -e "\n${OK} Install/update PIP3"
-$PYTHON3 -m pip -U pip
+$PYTHON3 -m pip install -U pip
 if [ "$?" != "0" ]; then
     echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
     info
@@ -81,7 +81,7 @@ if [ "$?" != "0" ]; then
 fi
 
 echo -e "\n${OK} Instalando/atualizando versão do ansible core"
-$PYTHON3 -m pip install ansible 'ansible-core>=2.14.2' 'jinja2>=3.1.2'
+$PYTHON3 -m pip install -U ansible 'ansible-core>=2.14.2' 'jinja2>=3.1.2'
 if [ "$?" != "0" ]; then
     echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
     info
