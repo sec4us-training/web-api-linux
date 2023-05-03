@@ -4,12 +4,16 @@
   when: burpsuite_install_dir is undefined
 
 - name: Burp | Retrieve release data from portswigger.net
-  ansible.builtin.set_fact:
-    burp_release_data: "{{ lookup('url', 'https://portswigger.net/burp/releases/data?lastId=-1&pageSize=20') }}"
+  ansible.builtin.uri:
+    url: https://portswigger.net/burp/releases/data?lastId=-1&pageSize=20
+    method: GET
+    return_content: true
+    status_code: 200
+    register: burp_release_data
 
 - name: Burp | Identify latest version number for release channel
   ansible.builtin.set_fact:
-    _burpsuite_installer_version: "{{ burp_release_data | json_query(version_query) }}"
+    _burpsuite_installer_version: "{{ burp_release_data.content | json_query(version_query) }}"
   vars:
     version_query: >-
       ResultSet.Results[?
@@ -26,7 +30,7 @@
 
 - name: Burp | Identify installer checksum
   ansible.builtin.set_fact:
-    burpsuite_installer_sha256_checksum: "{{ burp_release_data | json_query(checksum_query) }}"
+    burpsuite_installer_sha256_checksum: "{{ burp_release_data.content | json_query(checksum_query) }}"
   vars:
     checksum_query: >-
       ResultSet.Results[].builds[?
