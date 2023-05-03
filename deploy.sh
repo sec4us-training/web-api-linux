@@ -35,6 +35,7 @@ unset ansible_user
 unset key
 unset ip
 unset status_file
+unset PYTHON3
 
 echo "IF9fX19fICAgICAgICAgICAgIF9fXyBfICAgXyBfX19fXwovICBfX198ICAgICAgICAgICAvICAgfCB8IHwgLyAgX19ffApcIGAtLS4gIF9fXyAgX19fIC8gL3wgfCB8IHwgXCBgLS0uCiBgLS0uIFwvIF8gXC8gX18vIC9ffCB8IHwgfCB8YC0tLiBcCi9cX18vIC8gIF9fLyAoX19cX19fICB8IHxffCAvXF9fLyAvClxfX19fLyBcX19ffFxfX198ICAgfF8vXF9fXy9cX19fXy8K" | base64 -d
 echo " "
@@ -62,17 +63,29 @@ echo -e "\n${OK} Configurando SSH"
 systemctl enable ssh
 systemctl start ssh
 
-
-echo -e "\n${OK} Instalando dependencias Ansible"
-ansible-galaxy collection install community.general
-ansible-galaxy collection install ansible.posix
-ansible-galaxy collection install ansible.windows
-ansible-galaxy collection install community.windows
-
 echo -e "\n${OK} Gerando chaves SSH"
 key="/tmp/sshkey"
 if [ ! -f "$key" ]; then
   ssh-keygen -b 2048 -t rsa -f $key -q -N ""
+fi
+
+
+PYTHON3="/usr/bin/python3"
+
+echo -e "\n${OK} Install/update PIP3"
+$PYTHON3 -m pip -U pip
+if [ "$?" != "0" ]; then
+    echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
+    info
+    exit 1
+fi
+
+echo -e "\n${OK} Instalando/atualizando versão do ansible core"
+$PYTHON3 -m pip install ansible 'ansible-core>=2.14.2' 'jinja2>=3.1.2'
+if [ "$?" != "0" ]; then
+    echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
+    info
+    exit 1
 fi
 
 echo -e "\n${OK} Iniciando deploy"
@@ -130,6 +143,7 @@ grep "ansible_deps" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando instalação...${W}"
 else
+    
     ansible-galaxy collection install community.general
     ansible-galaxy collection install ansible.posix
     ansible-galaxy collection install ansible.windows
