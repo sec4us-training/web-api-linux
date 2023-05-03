@@ -59,15 +59,13 @@ ansible-galaxy collection install community.windows
 
 echo -e "\n${OK} Gerando chaves SSH"
 key="/tmp/sshkey"
-ssh-keygen -b 2048 -t rsa -f $key -q -N ""
+if [ ! -f "$key" ]; then
+  ssh-keygen -b 2048 -t rsa -f $key -q -N ""
+fi
 
 echo -e "\n${OK} Iniciando deploy"
 
 ip="127.0.0.1"
-
-# remove a linha ansible_user do vars.yml
-cp vars.yml vars_old.yml
-grep -i -v "ansible_user" vars_old.yml > vars.yml
 
 SSH_FILE=$key
 # Verifica se o arquivo da chave SSH existe
@@ -83,8 +81,14 @@ if [ ! -f "$SSH_FILE_PUB" ]; then
     exit 1
 fi
 
+echo -e "\n${OK} Realizando o download dos scripts"
+git clone https://github.com/sec4us-training/web-api-linux.git /tmp/
+pushd /tmp/web-api-linux
+
 cp -f $SSH_FILE ssh_key.pem
 cp -f $SSH_FILE_PUB ssh_key.pub
+mkdir /root/.ssh/
+cat ssh_key.pub >> /root/.ssh/authorized_keys
 
 ansible_path=`command -v ansible-playbook 2> /dev/null`
 if [ "$?" -ne "0" ] || [ "W$ansible_path" = "W" ]; then
@@ -93,6 +97,7 @@ if [ "$?" -ne "0" ] || [ "W$ansible_path" = "W" ]; then
     ansible_path=""
   fi
 fi
+
 if [ "W$ansible_path" = "W" ]; then
   echo -e "${ERROR} ${O}A aplicação ansible-playbook parece não estar instalada.${W}\n\n"
   echo "Em ambientes debian/ubuntu, realize a instalação com os comandos abaixo:"
@@ -140,9 +145,9 @@ else
     echo -e "${OK} ${G}OK${W}"
 fi
 
-echo -e "\n${OK} Realizando o download dos scripts"
-git clone https://github.com/sec4us-training/web-api-linux.git /tmp/
-pushd /tmp/web-api-linu
+# remove a linha ansible_user do vars.yml
+cp vars.yml vars_old.yml
+grep -i -v "ansible_user" vars_old.yml > vars.yml
 
 echo -e "\n${OK} Verificando senha padrão no arquivo vars.yml"
 password=$(cat vars.yml | grep default_password | cut -d '"' -f2)
