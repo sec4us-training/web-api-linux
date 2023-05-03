@@ -33,41 +33,38 @@ echo "Linux Deploy"
 echo " "
 echo "Copyright © Sec4US® - Todos os direitos reservados. Nenhuma parte dos materiais disponibilizadas, incluindo este script, servidor, suas aplicações e seu código fonte, podem ser copiadas, publicadas, compartilhadas, redistribuídas, sublicenciadas, transmitidas, alteradas, comercializadas ou utilizadas para trabalhos sem a autorização por escrito da Sec4US"
 
-no_args="true"
-while getopts u:k:t: flag
-do
-    case "${flag}" in
-        u) ansible_user=${OPTARG};;
-        k) key=${OPTARG};;
-        t) ip=${OPTARG};;
-    esac
-    no_args="false"
-done
-
-[[ "$no_args" == "true" ]] && { usage; exit 1; }
-
-if [ -z "$ansible_user" ]
-then
-   usage
-   echo -e "\n${ERROR} ${O}Usuário não informado${W}\n"
-   exit 1
+if [ "$(id -u)" -ne 0 ]; then 
+  echo -e "\n${ERROR} ${O}Execute este script como root${W}\n"
+  exit 1; 
 fi
 
-if [ -z "$key" ]
-then
-   usage
-   echo -e "\n${ERROR} ${O}Chave SSH não informada${W}\n"
-   exit 1
-fi
+ansible_user=$(whoami)
+status_file=$(pwd)/executed.txt
 
-if [ -z "$ip" ]
-then
-   usage
-   echo -e "\n${ERROR} ${O}IP não informado${W}\n"
-   exit 1
-fi
+echo -e "\n${OK} Atualizando servidor"
+
+apt update && apt -y upgrade
+apt install -y ansible openssh-client openssh-server
+
+
+echo -e "\n${OK} Configurando SSH"
+systemctl enable ssh
+systemctl start ssh
+
+
+echo -e "\n${OK} Instalando dependencias Ansible"
+ansible-galaxy collection install community.general
+ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install ansible.windows
+ansible-galaxy collection install community.windows
+
+echo -e "\n${OK} Gerando chaves SSH"
+key="/tmp/sshkey"
+ssh-keygen -b 2048 -t rsa -f $key -q -N ""
 
 echo -e "\n${OK} Iniciando deploy"
+
+ip="127.0.0.1"
 
 # remove a linha ansible_user do vars.yml
 cp vars.yml vars_old.yml
@@ -110,7 +107,7 @@ if [ "W$ansible_path" = "W" ]; then
 fi
 
 echo -e "\n${OK} Instalando dependencias do ansible"
-grep "ansible_deps" ./executed.txt >/dev/null 2>&1
+grep "ansible_deps" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando instalação...${W}"
 else
@@ -118,7 +115,7 @@ else
     ansible-galaxy collection install ansible.posix
     ansible-galaxy collection install ansible.windows
     ansible-galaxy collection install community.windows
-    echo "ansible_deps" >> ./executed.txt
+    echo "ansible_deps" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
@@ -144,6 +141,10 @@ else
     echo -e "${OK} ${G}OK${W}"
 fi
 
+echo -e "\n${OK} Realizando o download dos scripts"
+git clone https://github.com/sec4us-training/web-api-linux.git /tmp/
+pushd /tmp/web-api-linu
+
 echo -e "\n${OK} Verificando senha padrão no arquivo vars.yml"
 password=$(cat vars.yml | grep default_password | cut -d '"' -f2)
 if [ "$?" -ne "0" ] || [ "W$password" = "W" ]; then
@@ -157,7 +158,7 @@ export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
 # Step 1 - base
 echo -e "\n${OK} Executando passo 1 - setup_base.yml"
-grep "step1_base" ./executed.txt >/dev/null 2>&1
+grep "step1_base" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 1...${W}"
 else
@@ -166,13 +167,13 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible setup base${W}\n"
         exit 1
     fi
-    echo "step1_base" >> ./executed.txt
+    echo "step1_base" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 # Step 2 - Tools
 echo -e "\n${OK} Executando passo 2 - setup_tools.yml"
-grep "step2_tools" ./executed.txt >/dev/null 2>&1
+grep "step2_tools" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 2...${W}"
 else
@@ -181,13 +182,13 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible tools${W}\n"
         exit 1
     fi
-    echo "step2_tools" >> ./executed.txt
+    echo "step2_tools" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 # Step 3 - API1
 echo -e "\n${OK} Executando passo 3 - setup_api1.yml"
-grep "step3_api1" ./executed.txt >/dev/null 2>&1
+grep "step3_api1" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 3...${W}"
 else
@@ -196,14 +197,14 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible API1 setup${W}\n"
         exit 1
     fi
-    echo "step3_api1" >> ./executed.txt
+    echo "step3_api1" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 
 # Step 4 - API2
 echo -e "\n${OK} Executando passo 4 - setup_api2.yml"
-grep "step4_api2" ./executed.txt >/dev/null 2>&1
+grep "step4_api2" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 4...${W}"
 else
@@ -212,13 +213,13 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible API2 setup${W}\n"
         exit 1
     fi
-    echo "step4_api2" >> ./executed.txt
+    echo "step4_api2" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 # Step 5 - API Auth
 echo -e "\n${OK} Executando passo 5 - setup_apiauth.yml"
-grep "step5_apiauth" ./executed.txt >/dev/null 2>&1
+grep "step5_apiauth" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 5...${W}"
 else
@@ -227,13 +228,13 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible API Auth setup${W}\n"
         exit 1
     fi
-    echo "step5_apiauth" >> ./executed.txt
+    echo "step5_apiauth" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 # Step 6 - OAuth Bank
 echo -e "\n${OK} Executando passo 6 - setup_bank.yml"
-grep "step6_bank" ./executed.txt >/dev/null 2>&1
+grep "step6_bank" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 6...${W}"
 else
@@ -242,14 +243,14 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible Bank setup${W}\n"
         exit 1
     fi
-    echo "step6_bank" >> ./executed.txt
+    echo "step6_bank" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
 
 
 # Step 7 - RDP
 echo -e "\n${OK} Executando passo 7 - setup_rdp.yml"
-grep "step7_rdp" ./executed.txt >/dev/null 2>&1
+grep "step7_rdp" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 7...${W}"
 else
@@ -258,9 +259,11 @@ else
         echo -e "${ERROR} ${O} Erro executando ansible RDP setup${W}\n"
         exit 1
     fi
-    echo "step7_rdp" >> ./executed.txt
+    echo "step7_rdp" >> "$status_file"
     echo -e "${OK} ${G}OK${W}"
 fi
+
+popd
 
 echo -e "\n\n${OK} Deploy finalizado!\n"
 echo -e "${OK} Credenciais"
