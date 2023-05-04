@@ -38,3 +38,9 @@ wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api
 ```
 
 **Nota:** o script deploy.sh irá executar todos o processo de deploy dos arquivos .yml, sendo assim NÃO precisa executar manualmente cada um deles.
+
+## Packer by HashiCorp
+
+Para quem desejar opcionalmente tem a opção de criar toda a máquina virtual com um processo 100% automatizando utilizando o HashiCorp Packer.
+
+Segue o procedimento: [Packer](./packer/README.md)
