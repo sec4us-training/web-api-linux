@@ -85,9 +85,9 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
   
-  config.vm.provider "vmware_desktop" do |v|
-    v.gui = true
-    v.check_guest_additions = false
+  config.vm.provider "vmware_desktop" do |vm|
+    vm.gui = true
+    vm.check_guest_additions = false
   end
   
   config.vm.provision "shell", inline: <<-SHELL
