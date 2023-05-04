@@ -114,6 +114,8 @@ pushd /tmp/web-api-linux
 
 cp -f $SSH_FILE ssh_key.pem
 cp -f $SSH_FILE_PUB ssh_key.pub
+cp -f $SSH_FILE /tmp/web_api_ssh_key.pem
+cp -f $SSH_FILE_PUB /tmp/web_api_ssh_key.pub
 mkdir /root/.ssh/
 cat ssh_key.pub >> /root/.ssh/authorized_keys
 

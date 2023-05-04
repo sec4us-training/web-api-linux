@@ -53,6 +53,18 @@ build {
     inline = ["wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sudo bash"]
   }
 
+  provisioner "file" {
+    source = "/tmp/web_api_ssh_key.pem"
+    destination = "web_api_ssh_key.pem"
+    direction = "download"
+  }
+
+  provisioner "file" {
+    source = "/tmp/web_api_ssh_key.pub"
+    destination = "web_api_ssh_key.pub"
+    direction = "download"
+  }
+
   post-processors {
     post-processor "compress" {
       keep_input_artifact = false
