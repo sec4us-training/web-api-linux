@@ -117,6 +117,9 @@ cp -f $SSH_FILE_PUB ssh_key.pub
 mkdir /root/.ssh/
 cat ssh_key.pub >> /root/.ssh/authorized_keys
 
+PK=$(cat ssh_key.pem)
+PUBK=$(cat ssh_key.pub)
+
 ansible_path=`command -v ansible-playbook 2> /dev/null`
 if [ "$?" -ne "0" ] || [ "W$ansible_path" = "W" ]; then
   ansible_path=`which ansible-playbook 2> /dev/null`
@@ -292,9 +295,13 @@ else
     echo -e "${OK} ${G}OK${W}"
 fi
 
+
 popd
 
-echo -e "\n\n${OK} Deploy finalizado!\n"
+echo -e "\n\n${O}===================================================${W}"
+echo -e "${O} Deploy finalizado! ${W}"
+echo -e "${O}===================================================${W}"
+
 echo -e "${OK} Credenciais"
 echo -e "     ${C}Usuário.:${O} webapi${W}"
 echo -e "     ${C}Senha...:${O} ${password}${W}"
@@ -305,3 +312,8 @@ echo -e "     ${C}SSH.....:${O} Porta 22${W}"
 echo -e "     ${C}RDP.....:${O} Porta 48389${W}"
 echo -e "     ${C}Proxy...:${O} Porta 48284${W}"
 echo " "
+
+echo -e "${OK} Chaves"
+echo -e "     ${C}Chave privada SSH.:${O}\n${PK}\n${W}"
+echo -e "     ${C}Chave pública SSH.:${O}\n${PUBK}v${W}"
+echo ""
