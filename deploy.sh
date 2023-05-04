@@ -116,6 +116,7 @@ cp -f $SSH_FILE ssh_key.pem
 cp -f $SSH_FILE_PUB ssh_key.pub
 cp -f $SSH_FILE /tmp/web_api_ssh_key.pem
 cp -f $SSH_FILE_PUB /tmp/web_api_ssh_key.pub
+chmod 444 /tmp/web_api_ssh*
 mkdir /root/.ssh/
 cat ssh_key.pub >> /root/.ssh/authorized_keys
 
