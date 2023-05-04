@@ -11,7 +11,15 @@ Para criar a máquina virtual do zero você precisa realizar o seguinte procedim
 
 1. Instalar o packer
 2. Clonar este repositório
-3. executar o script build.sh
+3. Executar o script build.sh
+
+### Windows
+
+Para usuários windows ao invés de executar o script `build.sh` execute o comando abaixo:
+
+```bash
+packer build -force "./"
+```
 
 ## Basicamente o que este script e o Packer realizarão?
 

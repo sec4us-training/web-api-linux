@@ -32,15 +32,23 @@ echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://
 sudo apt update && sudo apt install packer
 ```
 
-#### Outras plataformas (Windows e etc)
+### Windows
+
+Basta realizar o download do packer em uma das versões abaixo:
+
+- [AMD64 v1.8.6](https://releases.hashicorp.com/packer/1.8.6/packer_1.8.6_windows_amd64.zip)
+- [386 v1.8.6](https://releases.hashicorp.com/packer/1.8.6/packer_1.8.6_windows_386.zip)
+
+Após o download extraia o conteúdo do zip no mesmo diretório do projeto.
+
+#### Outras plataformas
 
 https://developer.hashicorp.com/packer/downloads?product_intent=packer
-
 
 ## Criação da máquina virtual
 
 Após a instalação do packer (conforme item acima), verifique o procedimento específico de cada plataforma conforme abaixo:
 
-- [VMware Fusion (Apple Users) or VMware Worksation (Windows/Linux users)](ubuntu-22-04-packer-fusion-workstation/README.md)
-
+- [VMware Fusion (Apple) ou VMware Worksation (Windows/Linux)](ubuntu-22-04-packer-fusion-workstation/README.md)
+- [VirtualBox (Apple/Windows/Linux)](ubuntu-22-04-packer-virtualbox/README.md)
 

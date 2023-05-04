@@ -2,7 +2,7 @@
 ## Pré-requisitos
 
 Você deve ter instalado em seu sistema os sequintes pacotes:
-- VMware Fusion (Apple) or VMware Worksation (Windows/Linux)
+- VirtualBox
 - Hashicorp Packer (Version 1.8.6 é o atual quando criamos este procedimento)
 
 ## Procedimento de criação da VM
@@ -11,7 +11,15 @@ Para criar a máquina virtual do zero você precisa realizar o seguinte procedim
 
 1. Instalar o packer
 2. Clonar este repositório
-3. executar o script build.sh
+3. Executar o script build.sh
+
+### Windows
+
+Para usuários windows ao invés de executar o script `build.sh` execute o comando abaixo:
+
+```bash
+packer build -force "./"
+```
 
 ## Basicamente o que este script e o Packer realizarão?
 
@@ -24,10 +32,8 @@ Para criar a máquina virtual do zero você precisa realizar o seguinte procedim
 - Instala as depenências base: openssh-server, open-fm-tools, cloud-init, whois, zsh, wget, tasksel, ansible, python3
 - Instala todo o ambiente do treinamento Web API Exploitation utilizando o script [deploy.sh](../../deploy.sh)
 
+
 ## Ubuntu Download Pages
 - [Jammy Releases](http://releases.ubuntu.com/jammy/)
 - [Daily Server Build](https://cdimage.ubuntu.com/ubuntu-server/daily-live/current/)
 - [Daily Desktop Build](https://cdimage.ubuntu.com/daily-live/current/)
-
-# Fonte:
-- [burkeazbill project](https://github.com/burkeazbill/ubuntu-22-04-packer-fusion-workstation)
