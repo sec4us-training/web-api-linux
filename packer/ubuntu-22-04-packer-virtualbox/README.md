@@ -26,7 +26,7 @@ packer build -force "./"
 - Realiza o download da imagem ISO do Ubuntu 22.04 LTS Server
 - Verifica a integridade da imagem através do seu checksum do site oficial
 - Atualiza o arquivo de configuração com o Checksum da ISO, diretório de Downloads, Usuário inicial, Senha inicial e etc.
-- Realiza a criação da máquina virtual no VMware Fusion ou Workstation (Eu testei somente no Fusion)
+- Realiza a criação da máquina virtual no VirtualBox
 - Define o usuário de build/ssh para permitir sudo sem solicitar senha
 - Redefine o tamanho do disco lógico para utilizar 100% do disco virtual atribuido
 - Instala as depenências base: openssh-server, open-fm-tools, cloud-init, whois, zsh, wget, tasksel, ansible, python3
