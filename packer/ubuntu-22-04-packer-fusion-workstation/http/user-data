@@ -1,0 +1,51 @@
+#cloud-config
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Ubuntu Server 22.04 LTS
+autoinstall:
+  version: 1
+  apt:
+    geoip: true
+    disable_components: []
+    preserve_sources_list: false
+    primary:
+      - arches: [amd64, i386]
+        uri: http://us.archive.ubuntu.com/ubuntu
+      - arches: [default]
+        uri: http://ports.ubuntu.com/ubuntu-ports
+  early-commands:
+    - sudo systemctl stop ssh
+    - sudo systemctl enable ssh
+  locale: en_US
+  keyboard:
+    layout: us
+  identity:
+    hostname: webapi
+    username: webapi
+    password: $6$M8D0rc1UaTM29W9I$wSxBvq1KXB5j.LXeLcdjuEwPXouUEtvDI5uhRwSjQP0yfUOLmHRiN.y/NNk.TMBkVBkh/z9Gxd3pT1kLQcgZx.
+  ssh:
+    install-server: true
+    allow-pw: true
+  packages:
+    - openssh-server
+    - open-vm-tools
+    - cloud-init
+    - whois
+    - zsh
+    - wget
+    - tasksel
+    - git
+  user-data:
+    disable_root: false
+    timezone: UTC
+  late-commands:
+    - 'sed -i "s/dhcp4: true/&\n      dhcp-identifier: mac/" /target/etc/netplan/00-installer-config.yaml'
+    - sed -i -e 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/g' /target/etc/ssh/sshd_config
+    - echo 'webapi ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/webapi
+    - curtin in-target --target=/target -- chmod 440 /etc/sudoers.d/webapi
+    - "lvresize -v -l +100%FREE /dev/mapper/ubuntu--vg-ubuntu--lv"
+    - "resize2fs -p /dev/mapper/ubuntu--vg-ubuntu--lv"
+    - sudo systemctl start ssh

@@ -48,8 +48,6 @@
         chown -R bank:{{ nginx_user }} /u01/www/facebuquison/
         chown -R bank:{{ nginx_user }} /tmp/web_api/oauthlib*
 
-      args:
-        warn: false
 
     - name: Install Bank Python environment
       shell: |
@@ -67,8 +65,7 @@
         chmod 777 /tmp/instala.sh
 
         sudo -u bank bash -c "/tmp/instala.sh"
-      args:
-        warn: false
+
 
 
     - name: Install Cathub Python environment
@@ -87,8 +84,7 @@
         chmod 777 /tmp/instala.sh
 
         sudo -u bank bash -c "/tmp/instala.sh"
-      args:
-        warn: false
+
 
     - name: Install Facebuquison Python environment
       shell: |
@@ -107,8 +103,7 @@
         chmod 777 /tmp/instala.sh
 
         sudo -u bank bash -c "/tmp/instala.sh"
-      args:
-        warn: false
+
 
 
     - name: Creating a Nginx Bank config file
@@ -352,5 +347,4 @@
     - name: Reload nginx config
       shell: |
         nginx -s reload
-      args:
-        warn: false
+

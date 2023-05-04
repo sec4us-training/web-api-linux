@@ -1,4 +1,4 @@
-- name: Burp | Get user details
+- name: General | Get user details
   ansible.builtin.user:
     name: "{{ local_username }}"
   register: user_details

@@ -90,24 +90,31 @@
       shell: 'cd /tmp; rm -rf /tmp/web_api/; git clone https://github.com/sec4us-training/web-api-linux.git web_api'
       ignore_errors: false
       become: yes
-      args:
-        warn: false
 
     - name: Tools | Copy Git clone
       shell: 'rsync -av /tmp/web_api/* /home/{{ local_username }}/Desktop/DeployPackage'
       ignore_errors: false
       become: yes
-      args:
-        warn: false
 
     - name: Tools | Install turbosearch
       ansible.builtin.pip:
         executable: pip3
-        state: forcereinstall
-        name: git+https://github.com/helviojunior/turbosearch.git#egg=turbosearch
-      become: yes
+        name:
+          - turbosearch>=0.1.31
 
-    - name: Tools | Download/Install sublime
+    - name: Tools | Install pyccat
+      ansible.builtin.pip:
+        executable: pip3
+        name:
+          - pyccat>=0.1.8
+
+    - name: Tools | Install filecrawler
+      ansible.builtin.pip:
+        executable: pip3
+        name:
+          - filecrawler>=0.1.6
+
+    - name: Tools | Install sublime repo
       shell: wget -qO - https://download.sublimetext.com/sublimehq-pub.gpg | sudo apt-key add -; echo "deb https://download.sublimetext.com/ apt/stable/" | sudo tee /etc/apt/sources.list.d/sublime-text.list
       ignore_errors: yes
       become: yes
@@ -124,22 +131,16 @@
       shell: cd /tmp/web_api; rsync -av desktop/* /home/{{ local_username }}/Desktop/
       ignore_errors: false
       become: yes
-      args:
-        warn: false
 
     - name: Tools | Adjusting permissions
       shell: chown -R {{ local_username }}:{{ local_username }} /home/{{ local_username }}/Desktop/
       ignore_errors: false
       become: yes
-      args:
-        warn: false
 
     - name: Tools | Postman
       shell: snap install postman
       ignore_errors: false
       become: yes
-      args:
-        warn: false
 
     - name: Tools | Remove Frida client
       ansible.builtin.pip:
@@ -160,9 +161,6 @@
       shell: chown -R {{ local_username }}:{{ local_username }} /home/{{ local_username }}/Desktop/
       ignore_errors: false
       become: yes
-      args:
-        warn: false
-
 
     - name: Tools | Check if exists Enjarify
       stat:
@@ -172,8 +170,6 @@
     - name: Tools | Enjarify
       ignore_errors: false
       become: yes
-      args:
-        warn: false
       shell: |
         git clone https://github.com/Storyyeller/enjarify.git /opt/enjarify
         chmod 777 /opt/enjarify/enjarify.sh
@@ -185,20 +181,83 @@
         path: "/opt/ysoserial/ysoserial.sh"
       register: ysoserial_stats
 
-    - name: Tools | ysoserial
+    - name: Tools | Downloading ysoserial
       ignore_errors: false
       become: yes
-      args:
-        warn: false
       shell: |
         mkdir -p /opt/ysoserial
         wget https://jitpack.io/com/github/frohoff/ysoserial/master-SNAPSHOT/ysoserial-master-SNAPSHOT.jar -O /opt/ysoserial/ysoserial.jar
+      when: not ysoserial_stats.stat.exists
+      
+    - name: Tools | Creating executable file
+      copy:
+        dest: "/opt/ysoserial/ysoserial.sh"
+        content: |
+          #!/bin/bash
+          #
 
-        cat << EOF > /opt/ysoserial/ysoserial.sh
-        #!/bin/bash
-        java -jar /opt/ysoserial/ysoserial.jar \$@
-        EOF
+          prog="$0"
+          while [ -h "${prog}" ]; do
+              newProg=`/bin/ls -ld "${prog}"`
 
+              newProg=`expr "${newProg}" : ".* -> \(.*\)$"`
+              if expr "x${newProg}" : 'x/' >/dev/null; then
+                  prog="${newProg}"
+              else
+                  progdir=`dirname "${prog}"`
+                  prog="${progdir}/${newProg}"
+              fi
+          done
+          oldwd=`pwd`
+          progdir=`dirname "${prog}"`
+          cd "${progdir}"
+          progdir=`pwd`
+          prog="${progdir}"/`basename "${prog}"`
+          cd "${oldwd}"
+
+          jarfile=ysoserial.jar
+          libdir="$progdir"
+          if [ ! -r "$libdir/$jarfile" ]
+          then
+              echo `basename "$prog"`": can't find $jarfile"
+              exit 1
+          fi
+
+          javaOpts=""
+
+          # If you want DX to have more memory when executing, uncomment the following
+          # line and adjust the value accordingly. Use "java -X" for a list of options
+          # you can pass here.
+          #
+          javaOpts="-Xmx512M -Dfile.encoding=utf-8"
+
+          # Alternatively, this will extract any parameter "-Jxxx" from the command line
+          # and pass them to Java (instead of to dx). This makes it possible for you to
+          # add a command-line parameter such as "-JXmx256M" in your ant scripts, for
+          # example.
+          while expr "x$1" : 'x-J' >/dev/null; do
+              opt=`expr "$1" : '-J\(.*\)'`
+              javaOpts="${javaOpts} -${opt}"
+              shift
+          done
+
+          if [ "$OSTYPE" = "cygwin" ] ; then
+              jarpath=`cygpath -w  "$libdir/$jarfile"`
+          else
+              jarpath="$libdir/$jarfile"
+          fi
+
+          # add current location to path for aapt
+          PATH=$PATH:`pwd`;
+          export PATH;
+          exec java $javaOpts -jar "$jarpath" "$@"
+
+      when: not ysoserial_stats.stat.exists
+
+    - name: Tools | ysoserial
+      ignore_errors: false
+      become: yes
+      shell: |
         chmod 777 /opt/ysoserial/ysoserial.sh
         ln -s /opt/ysoserial/ysoserial.sh /bin/ysoserial
         cp /opt/ysoserial/ysoserial.sh /home/{{ local_username }}/Desktop/Resources/Java/

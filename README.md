@@ -14,30 +14,7 @@ Conheça mais sobre nosso treinamento em: https://sec4us.com.br/treinamentos/web
 
 **Nota:** O "alvo" servidor de deploy, deve ser um ubuntu linux e todos os seus dados poderão ser destruidos, sendo assim NÃO execute este procedimento em um servidor com dados que não podem ser perdidos.
 
-Este ambiente é composto de duas máquinas:
-
-1. **Cliente:** Qualquer equipamento linux que servirá somente para iniciar o processo de deploy. Nesta máquina necessita ter instalado somente o Ansible para execução dos comandos e procedimentos remotos no servidor.
-2. **Servidor:** O servidor (ou alvo) deve ser um Ubuntu Linux que será o alvo de todo o procedimento de instalação. Recomenda-se que o servidor seja um Ubuntu Linux 20.04 ou superior, recentemente instalado e sem nenhuma informação que possa ser perdida, pois o procedimento de instalação é bem invasivo e irá reconfigurar diversos serviços do servidor.
-
-
-## Preparação do cliente
-
-### Atualize a maquina
-
-```bash
-apt update && apt -y upgrade
-```
-
-### Instale o ansible e suas dependências
-
-```bash
-apt install ansible
-
-ansible-galaxy collection install community.general
-ansible-galaxy collection install ansible.posix
-ansible-galaxy collection install ansible.windows
-ansible-galaxy collection install community.windows
-```
+O servidor (ou alvo) deve ser um Ubuntu Linux que será o alvo de todo o procedimento de instalação. Recomenda-se que o servidor seja um Ubuntu Linux 22.04 ou superior, recentemente instalado e sem nenhuma informação que possa ser perdida, pois o procedimento de instalação é bem invasivo e irá reconfigurar diversos serviços do servidor.
 
 ## Meus Ajustes
 ```bash
@@ -58,66 +35,29 @@ ssh -i /mnt/c/Users/<USER>/web-api-linux/.vagrant/machines/default/virtualbox/pr
 
 ## Preparação do servidor
 
-### Chaves SSH
+### Instalação
 
-Dentro do servidor Ubuntu Linux, crie um par de chaves SSH para autenticação
+Instale o Ubuntu em sua plataforma preferida (VmWare, VirtualBox, Hyper-V e etc).
 
-```bash
-sudo su
-apt install openssh-client openssh-server
-systemctl enable ssh
-systemctl start ssh
-ssh-keygen
-```
+Dentro do servidor Ubuntu recém instalado realize os procedimentos abaixo.
 
-**Nota:** Na geração das chaves NÃO altere os valores padrão.
-
-Este comando irá gerar 2 arquivos: 
-
-1. **/root/.ssh/id_rsa** Chave privada
-2. **/root/.ssh/id_rsa.pub** Chave pública
-
-Autorize a chave privada em logar com o usuário root
+#### Atualize e instale as dependencias básicas
 
 ```bash
-sudo su
-cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
+apt update && apt -y upgrade
+apt install wget
 ```
 
-### Copiando chaves
-
-Dentro da sua máquina cliente, copie os 2 arquivos (id_rsa e id_rsa.pub) gerados no servidor para o mesmo diretório onde está o arquivo deploy.sh ficando a estrutura conforme abaixo:
-
-```
-$ls
-
-README.md       id_rsa.pub          setup_apiauth.yml   setup_burp.yml      setup_python38.yml  user_details.yml
-deploy.sh       setup_api1.yml      setup_bank.yml      setup_nginx.yml     setup_rdp.yml       vars.yml
-id_rsa          setup_api2.yml      setup_base.yml      setup_node.yml      setup_tools.yml     
-```
-
-## Realizando o deploy
-
-Dentro da sua máquina cliente realize o procedimento abaixo
-
-### Acesso SSH
-
-Garanta que o seu usuário local tenha acesso via chave privada no servidor remoto
-
-### Definição do usuário e senha
-
-Caso deseje alterar o usuário e senha que será definido, altere no arquivo vars.yml os parâmetros abaixo:
-
-```
-local_username: webapi
-default_password: "senha"
-```
-
-### Realize o deploy
+#### Deploy
 
 ```bash
-chmod +x deploy.sh
-./deploy.sh -u root -k id_rsa -t [ip_address]
+wget --no-cache -q -O- https://raw.githubusercontent.com/sec4us-training/web-api-linux/main/deploy.sh | sudo bash
 ```
 
 **Nota:** o script deploy.sh irá executar todos o processo de deploy dos arquivos .yml, sendo assim NÃO precisa executar manualmente cada um deles.
+
+## Packer by HashiCorp
+
+Para quem desejar opcionalmente tem a opção de criar toda a máquina virtual com um processo 100% automatizando utilizando o HashiCorp Packer.
+
+Segue o procedimento: [Packer](./packer/README.md)
