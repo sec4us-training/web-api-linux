@@ -187,6 +187,12 @@ grep "step1_base" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 1...${W}"
 else
+    if [ `uname -s` == "Darwin" ]; then
+        sed -i "" "s/PasswordAuthentication .*/PasswordAuthentication yes/g" "setup_base.yml"
+    else
+        sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" "setup_base.yml"
+    fi
+
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_base.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible setup base${W}\n"
