@@ -85,6 +85,11 @@ Vagrant.configure("2") do |config|
     v.check_guest_additions = false
   end
   
+  config.vm.provider "vmware_desktop" do |v|
+    v.gui = true
+    v.check_guest_additions = false
+  end
+  
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
     apt-get upgrade -y
