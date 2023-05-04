@@ -37,7 +37,7 @@ sudo apt update && sudo apt install packer
 https://developer.hashicorp.com/packer/downloads?product_intent=packer
 
 
-## Criação da máquina virtual e OVA
+## Criação da máquina virtual
 
 Após a instalação do packer (conforme item acima), verifique o procedimento específico de cada plataforma conforme abaixo:
 
