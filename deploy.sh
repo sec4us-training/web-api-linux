@@ -188,7 +188,7 @@ if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 1...${W}"
 else
     if [ `uname -s` == "Darwin" ]; then
-        sed -i "" "s/PasswordAuthentication .*/PasswordAuthentication yes/g" "setup_base.yml"
+        sed -i "" "s/PasswordAuthentication no/PasswordAuthentication yes/g" "setup_base.yml"
     else
         sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" "setup_base.yml"
     fi
