@@ -56,7 +56,7 @@ build {
   post-processors {
     post-processor "compress" {
       keep_input_artifact = false
-      output = "{{.BuildName}}.tar.gz"
+      output = "{{.BuildName}}.zip"
     }
   }
 
