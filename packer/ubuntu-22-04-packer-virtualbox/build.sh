@@ -81,6 +81,9 @@ cp http/user-data http/user-data-${BUILD_SUFFIX}.bak
 mv ubuntu-2204-daily.pkr.hcl.bak ubuntu-2204-daily.pkr.hcl
 mv http/user-data.bak http/user-data
 
+echo -e "\n${OK} Criando OVA"
+find ./output-virtualbox/ -depth -name "*.tar" -exec sh -c 'mv "$1" "${1%.tar}.ova"' _ {} \;
+
 echo -e "${O}======================================================${W}"
 echo -e "${O} Done!............................................... ${W}"
 echo -e "${O}======================================================${W}"

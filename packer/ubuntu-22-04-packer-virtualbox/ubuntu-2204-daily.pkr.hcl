@@ -154,7 +154,7 @@ build {
   post-processors {
     post-processor "compress" {
       keep_input_artifact = true
-      output = "{{.BuildName}}.zip"
+      output = "{{.BuildName}}.tar"
     }
   }
 
