@@ -13,6 +13,7 @@ source "vmware-iso" "webapi" {
   disk_size     = 30720
   sound         = true
   disk_type_id  = 0
+  headless      = true
   
   // ISO Details
   iso_urls =[
@@ -20,7 +21,7 @@ source "vmware-iso" "webapi" {
           "https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-live/current/jammy-live-server-amd64.iso"]
   iso_checksum = "sha256:570ef809f3b84fd0808f39a0b32ce2a31a948b5480d20b189c7095135131bba4"
   iso_target_path   = "c:/temp/"
-  output_directory  = "./output-vmware-iso"
+  output_directory  = "./output-vmware"
   snapshot_name     = "clean"  
   http_directory    = "http"
   ssh_username      = "webapi"

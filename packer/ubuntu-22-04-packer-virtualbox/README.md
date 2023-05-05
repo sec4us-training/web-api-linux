@@ -21,6 +21,15 @@ Para usuários windows ao invés de executar o script `build.sh` execute o coman
 packer build -force "./"
 ```
 
+### Resultado da execução
+Como resultante da execução os seguintes arquivos/diretórios serão criados:
+
+- **output-virtualbox**: Diretório contendo o OVF e VMDK da máquina virtual pronta para importação em seu VirtualBox.
+- **webapi.zip**: Arquivo compactado contendo OVF e VMDK da máquina virtual pronta para importação em seu VirtualBox.
+- **web_api_ssh_key.pem**: Chave privada SSH para autenticação como o usuário webapi. `ssh -i web_api_ssh_key.pem webapi@ip_do_servidor`
+
+**Nota:** Como o OVF é um padrão aberto a máquina virtual poderá ser importada em outras plataformas como VmWare, Hyper-V e etc, porém nessas plataformas recomendamos que seja desinstalado o VBoxGuest Adittions e instalado o pacote de cada plataforma, como o VmWare Tools (para VMWare).
+
 ## Basicamente o que este script e o Packer realizarão?
 
 - Realiza o download da imagem ISO do Ubuntu 22.04 LTS Server

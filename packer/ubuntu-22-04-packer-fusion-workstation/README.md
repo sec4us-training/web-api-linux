@@ -5,7 +5,7 @@ Você deve ter instalado em seu sistema os sequintes pacotes:
 - VMware Fusion (Apple) or VMware Worksation (Windows/Linux)
 - Hashicorp Packer (Version 1.8.6 é o atual quando criamos este procedimento)
 
-## Procedimento de criação da VM
+## Procedimento de criação da VM (Opção 01)
 
 Para criar a máquina virtual do zero você precisa realizar o seguinte procedimento:
 
@@ -20,6 +20,13 @@ Para usuários windows ao invés de executar o script `build.sh` execute o coman
 ```bash
 packer build -force "./"
 ```
+
+### Resultado da execução
+Como resultante da execução os seguintes arquivos/diretórios serão criados:
+
+- **webapi.zip**: Arquivo ZIP  contento a máquina virtual VMWare pronta para uso.
+- **web_api_ssh_key.pem**: Chave privada SSH para autenticação como o usuário webapi. `ssh -i web_api_ssh_key.pem webapi@ip_do_servidor`
+
 
 ## Basicamente o que este script e o Packer realizarão?
 
@@ -37,5 +44,22 @@ packer build -force "./"
 - [Daily Server Build](https://cdimage.ubuntu.com/ubuntu-server/daily-live/current/)
 - [Daily Desktop Build](https://cdimage.ubuntu.com/daily-live/current/)
 
-# Fonte:
+## Fonte:
 - [burkeazbill project](https://github.com/burkeazbill/ubuntu-22-04-packer-fusion-workstation)
+
+## Procedimento de criação da VM (Opção 02)
+
+Esta opção utilizará uma imagem Docker para criar a máquina virtual 
+
+## Build
+
+Primeiramente crie a imagem docker
+
+```bash
+docker build -t sec4us/webapi-builder .
+```
+
+### Executando
+```bash
+docker run --privileged --net=host --rm -it -v $(pwd):/u01 -v $(pwd):/root/Downloads/ sec4us/webapi-builder
+```
