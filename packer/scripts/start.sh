@@ -30,8 +30,16 @@ if [ "$?" != "0" ]; then
 fi
 cd /tmp/web-api-linux
 
+VM="workstation"
+VBOX=$(vboxmanage --version)
+if [ "$?" == "0" ]; then
+    VM="virtualbox"
+fi
+
+echo -e "\n${OK} VM platform: ${VM}"
+
 echo -e "\n${OK} Localizando script de inicialização"
-BUILD_FILE=$(find /tmp/web-api-linux -type f -name "build.sh" | grep ubuntu | grep packer | grep workstation)
+BUILD_FILE=$(find /tmp/web-api-linux -type f -name "build.sh" | grep ubuntu | grep packer | grep "${VM}")
 if [ ! -f "$BUILD_FILE" ]; then
     echo -e "${ERROR} ${O}Arquivo de build não localizado${W}\n"
     exit 1
