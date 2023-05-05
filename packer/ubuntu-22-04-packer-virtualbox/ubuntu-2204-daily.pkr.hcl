@@ -25,6 +25,7 @@ source "virtualbox-iso" "webapi" {
   disk_size     = var.disk_size
   guest_additions_path =  "VBoxGuestAdditions_{{.Version}}.iso"
   hard_drive_interface = "sata"
+  format               = "ova"
 
   // ISO Details
   iso_urls =[
@@ -150,13 +151,5 @@ build {
     destination = "web_api_ssh_key.pub"
     direction = "download"
   }
-
-  post-processors {
-    post-processor "compress" {
-      keep_input_artifact = true
-      output = "{{.BuildName}}.tar"
-    }
-  }
-
 
 }
