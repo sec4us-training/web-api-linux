@@ -5,7 +5,7 @@ source "vmware-iso" "webapi" {
   vm_name       = "webapi"
   guest_os_type = "ubuntu64Guest"
   version       = "16"
-  headless      = false
+  headless      = true
   // Virtual Hardware Specs
   memory        = 6144
   cpus          = 2
@@ -13,7 +13,6 @@ source "vmware-iso" "webapi" {
   disk_size     = 30720
   sound         = true
   disk_type_id  = 0
-  headless      = true
   
   // ISO Details
   iso_urls =[
