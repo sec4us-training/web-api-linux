@@ -81,7 +81,7 @@ if [ "$?" != "0" ]; then
 fi
 
 echo -e "\n${OK} Instalando/atualizando versão do ansible core"
-$PYTHON3 -m pip install -U ansible 'ansible-core>=2.14.2' 'jinja2>=3.1.2'
+$PYTHON3 -m pip install -U ansible 'ansible-core>=2.13.9' 'jinja2>=3.1.2'
 if [ "$?" != "0" ]; then
     echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
     info
