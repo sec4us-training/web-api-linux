@@ -81,7 +81,7 @@ if [ "$?" != "0" ]; then
 fi
 
 echo -e "\n${OK} Instalando/atualizando versão do ansible core"
-$PYTHON3 -m pip install -U ansible 'ansible-core>=2.14.2' 'jinja2>=3.1.2'
+$PYTHON3 -m pip install -U ansible 'ansible-core>=2.13.9' 'jinja2>=3.1.2'
 if [ "$?" != "0" ]; then
     echo -e "${ERROR} ${O} Erro atualizando PIP${W}\n"
     info
@@ -114,8 +114,14 @@ pushd /tmp/web-api-linux
 
 cp -f $SSH_FILE ssh_key.pem
 cp -f $SSH_FILE_PUB ssh_key.pub
+cp -f $SSH_FILE /tmp/web_api_ssh_key.pem
+cp -f $SSH_FILE_PUB /tmp/web_api_ssh_key.pub
+chmod 444 /tmp/web_api_ssh*
 mkdir /root/.ssh/
 cat ssh_key.pub >> /root/.ssh/authorized_keys
+
+PK=$(cat ssh_key.pem)
+PUBK=$(cat ssh_key.pub)
 
 ansible_path=`command -v ansible-playbook 2> /dev/null`
 if [ "$?" -ne "0" ] || [ "W$ansible_path" = "W" ]; then
@@ -184,6 +190,12 @@ grep "step1_base" "$status_file" >/dev/null 2>&1
 if [ "$?" == "0" ]; then
     echo -e "${DEBUG} ${C}Pulando passo 1...${W}"
 else
+    if [ `uname -s` == "Darwin" ]; then
+        sed -i "" "s/PasswordAuthentication no/PasswordAuthentication yes/g" "setup_base.yml"
+    else
+        sed -i "s/PasswordAuthentication no/PasswordAuthentication yes/g" "setup_base.yml"
+    fi
+
     ansible-playbook -i $ip,  --private-key $SSH_FILE  --extra-vars ansible_user=$ansible_user  --ssh-extra-args '-o StrictHostKeyChecking=no  -o UserKnownHostsFile=/dev/null' setup_base.yml
     if [ "$?" != "0" ]; then
         echo -e "${ERROR} ${O} Erro executando ansible setup base${W}\n"
@@ -292,9 +304,13 @@ else
     echo -e "${OK} ${G}OK${W}"
 fi
 
+
 popd
 
-echo -e "\n\n${OK} Deploy finalizado!\n"
+echo -e "\n\n${O}===================================================${W}"
+echo -e "${O} Deploy finalizado! ${W}"
+echo -e "${O}===================================================${W}"
+
 echo -e "${OK} Credenciais"
 echo -e "     ${C}Usuário.:${O} webapi${W}"
 echo -e "     ${C}Senha...:${O} ${password}${W}"
@@ -305,3 +321,8 @@ echo -e "     ${C}SSH.....:${O} Porta 22${W}"
 echo -e "     ${C}RDP.....:${O} Porta 48389${W}"
 echo -e "     ${C}Proxy...:${O} Porta 48284${W}"
 echo " "
+
+echo -e "${OK} Chaves"
+echo -e "     ${C}Chave privada SSH.:${O}\n${PK}\n${W}"
+echo -e "     ${C}Chave pública SSH.:${O}\n${PUBK}v${W}"
+echo ""
