@@ -3,7 +3,6 @@
   become: yes
   vars:
     ansible_python_interpreter: "/usr/bin/python3"
-    nodejs_version: "16"
   vars_files:
     - vars.yml
 

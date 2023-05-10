@@ -2,9 +2,10 @@
 - hosts: all
   become: yes
   vars:
-      ansible_python_interpreter: /usr/bin/python3
-      burpsuite_channel: "Stable"
-      burpsuite_edition: "community"
+    ansible_python_interpreter: /usr/bin/python3
+    burpsuite_channel: "Stable"
+    burpsuite_edition: "community"
+    nodejs_version: "16"
   vars_files:
     - vars.yml
 
