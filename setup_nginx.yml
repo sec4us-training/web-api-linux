@@ -12,6 +12,7 @@
   apt:
     pkg:
     - nginx
+    - nginx-extras 
     state: latest
 
 - name: NGINX | Starting NGINX

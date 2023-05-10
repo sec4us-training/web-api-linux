@@ -74,10 +74,6 @@
 
     - include_tasks: 'user_details.yml'
 
-    - include_tasks: 'setup_python38.yml'
-    - include_tasks: 'setup_nginx.yml'
-    - include_tasks: 'setup_node.yml'
-
     - name: Base | Update apt package lists
       ansible.builtin.apt:
         update_cache: true
@@ -88,7 +84,6 @@
           - libwacom-common
           - python3-apt
 
-
     - name: Base | Update all packages to their latest version
       ignore_errors: yes
       apt:
@@ -98,8 +93,6 @@
     - name: Base | Install a list of packages
       apt:
         pkg:
-        - nginx 
-        - nginx-extras 
         - build-essential
         - curl
         - openssl
@@ -125,7 +118,6 @@
         - unzip
         - xz-utils
         - xorg
-        - squid
         - apache2-utils
         - software-properties-common
         - openjdk-8-jre
@@ -266,76 +258,3 @@
           APT::Periodic::Download-Upgradeable-Packages "0";
           APT::Periodic::AutocleanInterval "0";
           APT::Periodic::Unattended-Upgrade "0";
-
-    - name: Base | Configuring SQUID
-      copy:
-        dest: "/etc/squid/squid.conf"
-        owner: root
-        group: root
-        mode: 0644
-        force: yes
-        content: |
-          cache deny all
-          acl localnet src 0.0.0.1-0.255.255.255	# RFC 1122 "this" network (LAN)
-          acl localnet src 10.0.0.0/8		# RFC 1918 local private network (LAN)
-          acl localnet src 100.64.0.0/10		# RFC 6598 shared address space (CGN)
-          acl localnet src 169.254.0.0/16 	# RFC 3927 link-local (directly plugged) machines
-          acl localnet src 172.16.0.0/12		# RFC 1918 local private network (LAN)
-          acl localnet src 192.168.0.0/16		# RFC 1918 local private network (LAN)
-          acl localnet src fc00::/7       	# RFC 4193 local private network range
-          acl localnet src fe80::/10      	# RFC 4291 link-local (directly plugged) machines
-          acl SSL_ports port 443
-          acl Safe_ports port 80		# http
-          acl Safe_ports port 21		# ftp
-          acl Safe_ports port 443		# https
-          acl Safe_ports port 70		# gopher
-          acl Safe_ports port 210		# wais
-          acl Safe_ports port 1025-65535	# unregistered ports
-          acl Safe_ports port 280		# http-mgmt
-          acl Safe_ports port 488		# gss-http
-          acl Safe_ports port 591		# filemaker
-          acl Safe_ports port 777		# multiling http
-          acl CONNECT method CONNECT
-          http_access deny !Safe_ports
-          http_access deny CONNECT !SSL_ports
-          http_access deny localhost manager
-          http_access deny manager
-          include /etc/squid/conf.d/*
-
-          #Auth
-          auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwords
-          auth_param basic realm WebAPIAuth
-
-          # ACL
-          acl authenticated proxy_auth REQUIRED
-          acl webapi dstdomain .webapiexploitation.com.br
-          http_access allow authenticated webapi
-          http_access deny all
-
-          http_port 48284
-          coredump_dir /var/spool/squid
-          refresh_pattern ^ftp:		1440	20%	10080
-          refresh_pattern ^gopher:	1440	0%	1440
-          refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
-          refresh_pattern .		0	20%	4320
-          visible_hostname student.webapiexploitation.com.br
-
-    - name: Base | Change squid user password
-      shell: htpasswd -bB -c /etc/squid/passwords {{ local_username }} {{ default_password }}
-      ignore_errors: no
-      become: yes
-
-    - name: Base | Reload systemd
-      ansible.builtin.systemd:
-        daemon_reload: yes
-
-    - name: Base | Enable service squid and ensure it is not masked
-      ansible.builtin.systemd:
-        name: squid
-        enabled: yes
-        masked: no
-
-    - name: Base | Restarting squid
-      service:
-        name: squid
-        state: restarted
