@@ -3,7 +3,7 @@ source "vmware-iso" "webapi" {
 
   // VM Info:
   vm_name       = "webapi"
-  guest_os_type = "ubuntu64Guest"
+  # guest_os_type = "ubuntu64Guest"
   version       = "16"
   headless      = true
   // Virtual Hardware Specs
@@ -16,9 +16,9 @@ source "vmware-iso" "webapi" {
   
   // ISO Details
   iso_urls =[
-          "file:c:/temp/jammy-live-server-amd64.iso",
+          "file:/temp/jammy-live-server-amd64.iso",
           "https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-live/current/jammy-live-server-amd64.iso"]
-  iso_checksum = "sha256:570ef809f3b84fd0808f39a0b32ce2a31a948b5480d20b189c7095135131bba4"
+  iso_checksum = "sha256:e295c010cd8aca7afdb72a4aafe22b8daebc6d8e19b2286459ced9643231dd8e"
   iso_target_path   = "c:/temp/"
   output_directory  = "./output-vmware"
   snapshot_name     = "clean"  
