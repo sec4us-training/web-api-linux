@@ -4,3 +4,4 @@
 User-agent: *
 
 Disallow: /api/v1
+Disallow: /help
