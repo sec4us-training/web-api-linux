@@ -6,6 +6,8 @@
 
   tasks:
     - include_tasks: 'user_details.yml'
+    - include_tasks: 'project_clone.yml'
+
 
     - name: Getting NGINX user
       ignore_errors: yes

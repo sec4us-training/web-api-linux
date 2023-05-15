@@ -17,6 +17,8 @@
     - include_tasks: 'setup_nginx.yml'
     - include_tasks: 'setup_node.yml'
 
+    - include_tasks: 'project_clone.yml'
+
     - name: Tools | Install a list of packages
       apt:
         pkg:
@@ -169,11 +171,6 @@
         group: "{{ user_details.group }}"
       with_fileglob:
         - ./*.yml
-
-    - name: Tools | Git clone
-      shell: 'cd /tmp; rm -rf /tmp/web_api/; git clone https://github.com/sec4us-training/web-api-linux.git web_api'
-      ignore_errors: false
-      become: yes
 
     - name: Tools | Copy Git clone
       shell: 'rsync -av /tmp/web_api/* /home/{{ local_username }}/Desktop/DeployPackage'

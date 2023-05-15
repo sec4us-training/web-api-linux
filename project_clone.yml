@@ -1,0 +1,11 @@
+- name: Project Clone | Check if path exists
+  stat:
+    path: /tmp/web_api/
+  register: git_path
+
+- name: Project Clone | Git clone
+  shell: 'cd /tmp; rm -rf /tmp/web_api/; git clone https://github.com/sec4us-training/web-api-linux.git web_api'
+  ignore_errors: false
+  become: yes
+  when: not git_path.stat.exists
+
