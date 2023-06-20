@@ -267,7 +267,7 @@
       become: yes
       shell: |
         mkdir -p /opt/ysoserial
-        wget https://jitpack.io/com/github/frohoff/ysoserial/master-SNAPSHOT/ysoserial-master-SNAPSHOT.jar -O /opt/ysoserial/ysoserial.jar
+        wget https://github.com/frohoff/ysoserial/releases/download/v0.0.6/ysoserial-all.jar -O /opt/ysoserial/ysoserial.jar
       when: not ysoserial_stats.stat.exists
       
     - name: Tools | Creating executable file
