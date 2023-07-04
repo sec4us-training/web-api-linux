@@ -1,9 +1,9 @@
 Flask
 Flask-RESTful
 pyotp
-uWSGI
+uWSGI>=2.0.19.1
 requests
-mysqlclient
+mysqlclient==2.1.1
 PyJWT
 xmltodict
 lxml
