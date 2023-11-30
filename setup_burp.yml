@@ -68,6 +68,7 @@
   shell: "cd /tmp; /bin/sh {{ burpsuite_installer_script }} -q -varfile burpsuite_response.varfile -overwrite"
   changed_when: true
   become: true
+  ignore_errors: yes
 
 - name: Burp | Clean-up files
   ansible.builtin.file:
