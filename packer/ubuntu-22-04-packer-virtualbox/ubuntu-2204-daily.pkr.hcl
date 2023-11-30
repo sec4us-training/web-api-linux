@@ -16,7 +16,7 @@ variables {
 source "virtualbox-iso" "webapi" {
 
   // VM Info:
-  vm_name       = "webapi"
+  vm_name       = "webapi-2023-11-30"
   guest_os_type = "ubuntu64Guest"
   headless      = false
   // Virtual Hardware Specs
@@ -31,7 +31,7 @@ source "virtualbox-iso" "webapi" {
   iso_urls =[
           "file:c:/temp/jammy-live-server-amd64.iso",
           "https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-live/current/jammy-live-server-amd64.iso"]
-  iso_checksum = "sha256:570ef809f3b84fd0808f39a0b32ce2a31a948b5480d20b189c7095135131bba4"
+  iso_checksum = "sha256:57241d205a8949d612d9ed39b7bbbcb50bd7977b695528c964858ee4a5328c91"
   iso_target_path   = "c:/temp/"
   output_directory  = "./output-virtualbox"
   http_directory    = "http"
