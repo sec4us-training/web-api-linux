@@ -34,6 +34,7 @@
   npm:
     name: "@angular/cli"
     global: yes
+    version: "11.0.7"
 
 - name: Node.JS | Install "apidoc" node.js package globally
   npm:
@@ -54,4 +55,5 @@
   npm:
     name: "@angular-devkit/build-angular"
     global: yes
+    version: "0.1100.7"
 
