@@ -16,7 +16,7 @@ variables {
 source "virtualbox-iso" "webapi" {
 
   // VM Info:
-  vm_name       = "webapi-2023-11-30"
+  vm_name       = "webapi"
   guest_os_type = "ubuntu64Guest"
   headless      = false
   // Virtual Hardware Specs
