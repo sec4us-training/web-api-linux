@@ -119,8 +119,8 @@
         - xorg
         - apache2-utils
         - software-properties-common
-        - openjdk-17-jre
-        - openjdk-17-jdk
+        - openjdk-8-jre
+        - openjdk-8-jdk
         - unzip
         - zip
         - firefox
