@@ -97,8 +97,9 @@
     - name: Extending Volume
       ignore_errors: yes
       shell: |
-        lvextend -l+100%FREE /dev/ubuntu-vg/ubuntu-lv
-        resize2fs /dev/ubuntu-vg/ubuntu-lv
+        lv_path=$(lvdisplay | grep -i 'LV Path' | grep -oE '/dev.*')
+        lvextend -l+100%FREE $lv_path
+        resize2fs $lv_path
 
     - name: Base | Install a list of packages
       apt:
