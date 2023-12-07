@@ -56,8 +56,9 @@ status_file=$(pwd)/executed.txt
 
 echo -e "\n${OK} Atualizando servidor"
 
-apt update && apt -y upgrade
-apt install -y ansible openssh-client openssh-server git wget vim zip unzip python3 python3-pip
+DEBIAN_FRONTEND=noninteractive apt update
+DEBIAN_FRONTEND=noninteractive apt -y upgrade
+DEBIAN_FRONTEND=noninteractive apt install -y ansible openssh-client openssh-server git wget vim zip unzip python3 python3-pip
 
 echo -e "\n${OK} Configurando SSH"
 systemctl enable ssh
