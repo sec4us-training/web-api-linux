@@ -12,6 +12,10 @@
       ansible.builtin.hostname:
         name: WebAPIExploitation
 
+    - name: Base | Force hostname update
+      shell: |
+        hostname WebAPIExploitation
+
     - name: Base | Set hosts
       shell: |
         echo "127.0.0.1    api1.webapiexploitation.com.br" >> /etc/hosts
@@ -21,7 +25,6 @@
         echo "127.0.0.1    facebuquison.webapiexploitation.com.br" >> /etc/hosts
         echo "127.0.0.1    cathub.webapiexploitation.com.br" >> /etc/hosts
         echo "127.0.0.1    $(hostname)" >> /etc/hosts
-
 
     - name: Base | Make sure we have a 'sec4us' group
       group:
