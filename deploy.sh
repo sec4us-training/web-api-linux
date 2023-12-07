@@ -67,6 +67,8 @@ systemctl start ssh
 echo -e "\n${OK} Gerando chaves SSH"
 key="/tmp/sshkey"
 if [ ! -f "$key" ]; then
+  hostname WebAPIExploitation
+  hostnamectl set-hostname WebAPIExploitation
   ssh-keygen -b 2048 -t rsa -f $key -q -N ""
 fi
 
