@@ -97,8 +97,6 @@
         name: squid
         state: restarted
 
-    - include_tasks: 'setup_burp.yml'
-
     - name: Tools | Create directory home -> Resources
       file:
         path: /home/{{ local_username }}/Desktop/Resources
