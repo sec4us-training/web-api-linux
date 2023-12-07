@@ -13,6 +13,7 @@
         name: WebAPIExploitation
 
     - name: Base | Force hostname update
+      ignore_errors: true
       shell: |
         hostname WebAPIExploitation
         hostnamectl set-hostname WebAPIExploitation
