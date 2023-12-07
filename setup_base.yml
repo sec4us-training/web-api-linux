@@ -15,6 +15,7 @@
     - name: Base | Force hostname update
       shell: |
         hostname WebAPIExploitation
+        hostnamectl set-hostname WebAPIExploitation
 
     - name: Base | Set hosts
       shell: |
