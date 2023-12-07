@@ -41,10 +41,23 @@
         pkg:
         - maven
 
-    - name: Getting JAVA version
-      ignore_errors: yes
+    - name: Getting JAVA 8 home path
       shell: |
-        java -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
+        dirname $(dirname $(readlink -f $(update-alternatives --list java | grep '\-8\-')))
+      register: java_home_output
+
+    - name: Setting JAVA home
+      set_fact:
+        java_home: "{{ java_home_output.stdout }}"
+
+    - name: JAVA home
+      debug:
+        msg: "JAVA home is: {{ java_home }}"
+
+    - name: Getting JAVA version
+      shell: |
+        export JAVA_HOME={java_home}
+        $JAVA_HOME/bin/java -version -version 2>&1 | grep version | awk '{print $3}' | sed 's/"//g'
       register: java_output
 
     - name: Setting JAVA version
@@ -73,6 +86,7 @@
       ignore_errors: false
       shell: |
         cd /tmp/web_api/api2/
+        export JAVA_HOME={java_home}
         mvn package
         cp ./target/spring-boot-crud-training-0.0.1-SNAPSHOT.jar /home/apivul2/api2.jar
 
@@ -97,8 +111,9 @@
           User = apivul2
           Group = {{ nginx_user }}
           WorkingDirectory=/home/apivul2/
-          Environment="PATH=/home/apivul2/api/:/usr/local/bin:/usr/bin"
-          ExecStart=/usr/bin/java -jar /home/apivul2/api2.jar
+          Environment="PATH=/home/apivul2/api/:{java_home}/bin:/usr/local/bin:/usr/bin"
+          Environment="JAVA_HOME={java_home}"
+          ExecStart={java_home}/bin/java -jar /home/apivul2/api2.jar
           SuccessExitStatus=143
 
           [Install]

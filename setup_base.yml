@@ -89,6 +89,12 @@
         name: "*"
         state: latest
 
+    - name: Extending Volume
+      ignore_errors: yes
+      shell: |
+        lvextend -l+100%FREE /dev/ubuntu-vg/ubuntu-lv
+        resize2fs /dev/ubuntu-vg/ubuntu-lv
+
     - name: Base | Install a list of packages
       apt:
         pkg:
@@ -121,6 +127,8 @@
         - software-properties-common
         - openjdk-8-jre
         - openjdk-8-jdk
+        - openjdk-17-jre
+        - openjdk-17-jdk
         - unzip
         - zip
         - firefox
