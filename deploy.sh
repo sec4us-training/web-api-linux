@@ -56,6 +56,11 @@ status_file=$(pwd)/executed.txt
 
 echo -e "\n${OK} Atualizando servidor"
 
+#Remove CDROM line from apt source list
+#  deb [check-date=no] file:///cdrom jammy main restricted
+cp /etc/apt/sources.list /tmp/
+grep -vE '^deb.*/cdrom.*' /tmp/sources.list > /etc/apt/sources.list
+
 DEBIAN_FRONTEND=noninteractive apt update
 DEBIAN_FRONTEND=noninteractive apt -y upgrade
 DEBIAN_FRONTEND=noninteractive apt install -y ansible openssh-client openssh-server git wget vim zip unzip python3 python3-pip

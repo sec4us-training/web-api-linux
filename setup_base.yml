@@ -78,6 +78,13 @@
 
     - include_tasks: 'user_details.yml'
 
+    - name: Base | Remove CDROM line from APT source list
+      lineinfile:
+        line: #Removed
+        regexp: ^deb.*/cdrom.*
+        path: /etc/apt/sources.list
+        state: absent
+
     - name: Base | Update apt package lists
       ansible.builtin.apt:
         update_cache: true
