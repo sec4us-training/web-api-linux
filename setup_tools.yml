@@ -268,6 +268,19 @@
         wget https://github.com/frohoff/ysoserial/releases/download/v0.0.6/ysoserial-all.jar -O /opt/ysoserial/ysoserial.jar
       when: not ysoserial_stats.stat.exists
       
+    - name: Tools | Getting JAVA 8 home path
+      shell: |
+        dirname $(dirname $(readlink -f $(update-alternatives --list java | grep '\-8\-')))
+      register: java_home_output
+
+    - name: Tools | Setting JAVA home
+      set_fact:
+        java_home: "{{ java_home_output.stdout }}"
+
+    - name: Tools | JAVA home
+      debug:
+        msg: "JAVA home is: {{ java_home }}"
+
     - name: Tools | Creating executable file
       copy:
         dest: "/opt/ysoserial/ysoserial.sh"
@@ -275,6 +288,8 @@
           #!/bin/bash
           #
 
+          export JAVA_HOME="{{ java_home }}"
+      
           prog="$0"
           while [ -h "${prog}" ]; do
               newProg=`/bin/ls -ld "${prog}"`
@@ -327,7 +342,7 @@
           fi
 
           # add current location to path for aapt
-          PATH=$PATH:`pwd`;
+          PATH=$JAVA_HOME/bin/:$PATH:`pwd`;
           export PATH;
           exec java $javaOpts -jar "$jarpath" "$@"
 
