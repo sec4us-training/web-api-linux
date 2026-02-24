@@ -1,59 +1,73 @@
-- name: Node.JS | Adding signing key
-  apt_key:
-    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+# Recomendado: nodejs_version: 20 (ou 18). Evite 16 (EOL).
+- name: Node.JS | Ensure dependencies for key handling
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
     state: present
+    update_cache: yes
 
-- name: Node.JS | Install the nodejs LTS repos
+- name: Node.JS | Ensure /etc/apt/keyrings exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Node.JS | Download NodeSource signing key (armored)
+  get_url:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    dest: /tmp/nodesource-repo.gpg.key
+    mode: "0644"
+
+- name: Node.JS | Dearmor NodeSource key into keyring
+  command: >
+    gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg /tmp/nodesource-repo.gpg.key
+  args:
+    creates: /etc/apt/keyrings/nodesource.gpg
+
+- name: Node.JS | Add NodeSource repository (signed-by keyring)
   apt_repository:
-    repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x {{ ansible_facts['lsb']['codename'] }} main"
+    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_{{ nodejs_version }}.x nodistro main"
+    filename: nodesource
     state: present
     update_cache: yes
 
-- name: Node.JS | Updating apt cache
+- name: Node.JS | Install nodejs
   apt:
-    update_cache: yes
+    name: nodejs
+    state: present
 
-- name: Node.JS | Installing
-  apt:
-    pkg:
-      - nodejs
-    state: latest
-
-- name: Node.JS | Install "npm" node.js package globally
-  npm:
-    name: npm
-    global: yes
-
-
-- name: Node.JS | Install "pm2" node.js package globally
+# Evite "npm install -g npm" na maioria dos casos (pode quebrar o npm do apt).
+# Se você realmente precisa, mantenha, mas eu recomendo remover.
+- name: Node.JS | Install "pm2" globally
   npm:
     name: pm2
     global: yes
 
-- name: Node.JS | Install "@angular/cli" node.js package globally
+- name: Node.JS | Install "@angular/cli" globally
   npm:
     name: "@angular/cli"
     global: yes
     version: "11.0.7"
 
-- name: Node.JS | Install "apidoc" node.js package globally
+- name: Node.JS | Install "apidoc" globally
   npm:
     name: apidoc
     global: yes
 
-- name: Node.JS | Install "qrcode" node.js package globally
+- name: Node.JS | Install "qrcode" globally
   npm:
     name: qrcode
     global: yes
 
-- name: Node.JS | Install "@aws-sdk/client-s3" node.js package globally
+- name: Node.JS | Install "@aws-sdk/client-s3" globally
   npm:
     name: "@aws-sdk/client-s3"
     global: yes
 
-- name: Node.JS | Install "@angular-devkit/build-angular" node.js package globally
+- name: Node.JS | Install "@angular-devkit/build-angular" globally
   npm:
     name: "@angular-devkit/build-angular"
     global: yes
     version: "0.1100.7"
-
