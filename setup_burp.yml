@@ -3,6 +3,13 @@
     burpsuite_install_dir: "/opt/BurpSuite{{ burpsuite_edition | capitalize }}"
   when: burpsuite_install_dir is undefined
 
+# PortSwigger no longer publishes separate community/professional builds in the
+# release data: both editions ship the same "desktop" installer (the edition is
+# selected at runtime by the licence). DAST ships as its own "dast" build.
+- name: Burp | Map edition to build category
+  ansible.builtin.set_fact:
+    burpsuite_build_category: "{{ 'dast' if burpsuite_edition == 'dast' else 'desktop' }}"
+
 - name: Burp | Retrieve release data from portswigger.net
   ansible.builtin.set_fact:
     burp_release_data: "{{ lookup('url', 'https://portswigger.net/burp/releases/data?lastId=-1&pageSize=20') }}"
@@ -15,8 +22,8 @@
       ResultSet.Results[?
         releaseChannels[0] == '{{ burpsuite_channel }}' &&
         builds[?
-          ProductId == '{{ burpsuite_edition }}' &&
-          ProductPlatform == 'Linux'
+          BuildCategoryId == '{{ burpsuite_build_category }}' &&
+          BuildCategoryPlatform == 'Linux'
         ]
       ].version | [0]
 
@@ -31,8 +38,8 @@
     checksum_query: >-
       ResultSet.Results[].builds[?
         Version == '{{ _burpsuite_installer_version }}' &&
-        ProductId == '{{ burpsuite_edition }}' &&
-        ProductPlatform == 'Linux'
+        BuildCategoryId == '{{ burpsuite_build_category }}' &&
+        BuildCategoryPlatform == 'Linux'
       ][].Sha256Checksum
       | [0]
 
@@ -42,7 +49,7 @@
 
 - name: Burp | Download Burp Suite installer
   ansible.builtin.get_url:
-    url: "https://portswigger.net/burp/releases/download?product={{ burpsuite_edition }}&type=linux&version={{ _burpsuite_installer_version }}"
+    url: "https://portswigger.net/burp/releases/download?product={{ burpsuite_build_category }}&type=linux&version={{ _burpsuite_installer_version }}"
     dest: "/tmp/{{ burpsuite_installer_script }}"
     checksum: "sha256:{{ burpsuite_installer_sha256_checksum }}"
     owner: "{{ local_username }}"
